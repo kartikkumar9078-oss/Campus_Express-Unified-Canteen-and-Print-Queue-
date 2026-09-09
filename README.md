@@ -25,8 +25,8 @@ Campus Express is a digital solution designed to eliminate the chaos of manual q
 1.  **Student App:** Users interface with the Android app to browse inventory, upload files, and process payments.
 2.  **API Layer:** REST APIs route the frontend requests to the backend server.
 3.  **Core Logic:** Python backend handles task scheduling (SJF) and Mutex lock synchronization.
-4.  **Database:** MySQL tracks live inventory, handles wallet transactions, and logs order statuses[cite: 2].
-5.  **Vendor Dashboard:** Real-time prioritized queue displayed on tablets/laptops for vendors to fulfill[cite: 2].
+4.  **Database:** MySQL tracks live inventory, handles wallet transactions, and logs order statuses.
+5.  **Vendor Dashboard:** Real-time prioritized queue displayed on tablets/laptops for vendors to fulfill.
 
 ##  Installation & Setup 
 
