@@ -8,23 +8,23 @@ Campus Express is a digital solution designed to eliminate the chaos of manual q
 
 *   **Remote Ordering:** Order food and submit document print jobs via a unified Android mobile application.
 *   **Vendor Dashboard:** A dedicated digital dashboard for canteen and print shop staff to manage incoming orders seamlessly.
-*   **Smart Queueing (OS Integration):** Utilizes a Shortest Job First (SJF) scheduling algorithm for the print spooler queue to optimize wait times[cite: 2].
-*   **Process Synchronization:** Implements Mutex locks to ensure multiple canteen workers do not process the exact same order simultaneously[cite: 2].
-*   **Secure Transactions (DBMS Integration):** Powered by a robust SQL database enforcing ACID properties, ensuring money is never deducted for out-of-stock items[cite: 2].
-*   **Digital Receipts:** Secure online payments integrated with digital receipts for quick, hassle-free pickups[cite: 2].
+*   **Smart Queueing (OS Integration):** Utilizes a Shortest Job First (SJF) scheduling algorithm for the print spooler queue to optimize wait times.
+*   **Process Synchronization:** Implements Mutex locks to ensure multiple canteen workers do not process the exact same order simultaneously.
+*   **Secure Transactions (DBMS Integration):** Powered by a robust SQL database enforcing ACID properties, ensuring money is never deducted for out-of-stock items.
+*   **Digital Receipts:** Secure online payments integrated with digital receipts for quick, hassle-free pickups.
 
 ##  Technology Stack
 
-*   **Frontend (Mobile App):** Java (Android)[cite: 2]
-*   **Backend Logic & Scheduling:** Python[cite: 2]
-*   **Database:** MySQL[cite: 2]
-*   **Communication:** REST APIs[cite: 2]
+*   **Frontend (Mobile App):** Java (Android)
+*   **Backend Logic & Scheduling:** Python
+*   **Database:** MySQL
+*   **Communication:** REST APIs
 
 ##  System Architecture
 
-1.  **Student App:** Users interface with the Android app to browse inventory, upload files, and process payments[cite: 2].
-2.  **API Layer:** REST APIs route the frontend requests to the backend server[cite: 2].
-3.  **Core Logic:** Python backend handles task scheduling (SJF) and Mutex lock synchronization[cite: 2].
+1.  **Student App:** Users interface with the Android app to browse inventory, upload files, and process payments.
+2.  **API Layer:** REST APIs route the frontend requests to the backend server.
+3.  **Core Logic:** Python backend handles task scheduling (SJF) and Mutex lock synchronization.
 4.  **Database:** MySQL tracks live inventory, handles wallet transactions, and logs order statuses[cite: 2].
 5.  **Vendor Dashboard:** Real-time prioritized queue displayed on tablets/laptops for vendors to fulfill[cite: 2].
 
