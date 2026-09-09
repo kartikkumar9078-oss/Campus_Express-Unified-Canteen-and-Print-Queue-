@@ -34,4 +34,5 @@ Campus Express is a digital solution designed to eliminate the chaos of manual q
 
 1. Clone the repository:
    ```bash
+[https://github.com/kartikkumar9078-oss/Campus_Express-Unified-Canteen-and-Print-Queue-]
    
