@@ -20,7 +20,6 @@ def process_canteen_order(student_name, item, qty):
         else:
             print(f"[FAILED] Out of stock for {student_name}!")
             return False
-    # MUTEX LOCK AUTOMATICALLY RELEASED
 
 
 class PrintSpooler:
