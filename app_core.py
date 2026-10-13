@@ -2,9 +2,7 @@ import heapq
 import threading
 import time
 
-# ==========================================
-# 1. OS CONCEPT: MUTEX LOCK (Concurrency)
-# ==========================================
+
 order_lock = threading.Lock()
 canteen_stock = {"Samosa": 5}
 
@@ -12,7 +10,7 @@ def process_canteen_order(student_name, item, qty):
     """Prevents race conditions when two students order simultaneously."""
     global canteen_stock
     
-    with order_lock: # MUTEX LOCK ACQUIRED
+    with order_lock:
         print(f"\n[LOCK ACQUIRED] Processing order for {student_name}...")
         if canteen_stock.get(item, 0) >= qty:
             time.sleep(0.5) # Simulating DB/processing delay
@@ -24,9 +22,7 @@ def process_canteen_order(student_name, item, qty):
             return False
     # MUTEX LOCK AUTOMATICALLY RELEASED
 
-# ==========================================
-# 2. OS CONCEPT: PRINT SPOOLER (SJF Scheduling)
-# ==========================================
+
 class PrintSpooler:
     """SJF Queue: Priority given to documents with fewer pages."""
     def __init__(self):
@@ -46,7 +42,7 @@ class PrintSpooler:
         print(f"\n[PRINTING NOW] SJF Selected: '{file}' ({pages} pages) for {student}")
         return file
 
-# --- TEST DRIVE ---
+
 if __name__ == "__main__":
     # Test Mutex
     t1 = threading.Thread(target=process_canteen_order, args=("Shivansh", "Samosa", 3))
@@ -56,13 +52,11 @@ if __name__ == "__main__":
     t1.join()
     t2.join()
 
-    # Test SJF Print Spooler
     spooler = PrintSpooler()
     spooler.add_job("Manasvi", "Lab_Report_100pg.pdf", 100)
     spooler.add_job("Gursehaj", "Receipt_1pg.pdf", 1)
     spooler.add_job("Shivansh", "Assignment_5pg.pdf", 5)
 
-    # SJF will automatically print 1pg -> 5pg -> 100pg
     spooler.execute_next_job()
     spooler.execute_next_job()
     spooler.execute_next_job()
