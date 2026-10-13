@@ -4,15 +4,13 @@ import requests
 import subprocess
 
 API_BASE_URL = "http://127.0.0.1:8000"
-POLL_INTERVAL = 10  # Checks the queue every 10 seconds
+POLL_INTERVAL = 10  
 LOCAL_PRINT_DIR = "vendor_downloads"
 
-# Ensure the download folder exists on the vendor's machine
 os.makedirs(LOCAL_PRINT_DIR, exist_ok=True)
 
 def check_and_print():
     try:
-        # 1. Ask FastAPI for the next job (SJF logic handled by backend)
         response = requests.get(f"{API_BASE_URL}/api/print/next")
         if response.status_code != 200:
             return
@@ -22,7 +20,6 @@ def check_and_print():
         if data.get("status") == "empty":
             return  # Silently wait if there are no jobs
 
-        # 2. Extract job metadata
         job_id = data["job_id"]
         filename = data["filename"]
         download_url = data["download_url"]
@@ -32,7 +29,6 @@ def check_and_print():
         print(f"\n[+] NEW JOB INCOMING: '{filename}' for {student} ({pages} pages)")
         print(f"[*] Downloading file from server...")
 
-        # 3. Download the binary file
         file_resp = requests.get(download_url)
         local_file_path = os.path.join(LOCAL_PRINT_DIR, f"{job_id}_{filename}")
         
@@ -41,8 +37,6 @@ def check_and_print():
 
         print(f"[*] Download complete. Sending to OS Print Spooler...")
 
-        # 4. Trigger the hardware print natively (macOS)
-        # Bypasses all popups and prints silently
         subprocess.run(["lpr", local_file_path])
         
         print(f"[SUCCESS] Hardware print triggered for {filename}!")
