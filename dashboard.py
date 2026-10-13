@@ -7,18 +7,14 @@ API_URL = "http://127.0.0.1:8000"
 st.set_page_config(page_title="Campus Express", layout="wide")
 st.title("🚀 Campus Express App")
 
-# Create tabs for the different user roles
 tab1, tab2 = st.tabs(["🎓 Student App (Order & Pay)", "🍔 Canteen Dashboard"])
 
-# ==========================================
-# TAB 1: STUDENT APP
-# ==========================================
+
 with tab1:
     st.info("💳 **Campus Wallet Balance:** ₹500.00")
     
     col1, col2 = st.columns(2)
     
-    # --- CANTEEN ORDERING ---
     with col1:
         st.subheader("🍔 Order Canteen Food")
         with st.form("food_order_form"):
@@ -51,7 +47,6 @@ with tab1:
                 else:
                     st.error(res.json()["detail"])
 
-    # --- PRINT SHOP UPLOAD ---
     with col2:
         st.subheader("🖨️ Send to Print Shop")
         with st.form("print_upload_form"):
@@ -88,9 +83,6 @@ with tab1:
                     else:
                         st.error("Failed to upload document.")
 
-# ==========================================
-# TAB 2: CANTEEN VENDOR DASHBOARD
-# ==========================================
 with tab2:
     st.subheader("🍳 Live Kitchen Queue (Main Canteen)")
     st.write("This dashboard pulls live, locked transactions from the MySQL database.")
