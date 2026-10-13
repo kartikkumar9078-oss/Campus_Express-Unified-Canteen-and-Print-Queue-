@@ -2,7 +2,6 @@ venv/
 __pycache__/
 *.pyc
 .DS_Store
-# Exclude local test upload/download folders
 uploaded_prints/
 vendor_downloads/
 *.pdf
