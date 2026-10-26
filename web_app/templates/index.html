@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Campus Express — Your Campus, Simplified</title>
+    <meta name="description" content="Order food, print documents, and manage campus services in one place.">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <style>
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+        :root {
+            --primary: #6C63FF;
+            --primary-dark: #5850EC;
+            --accent: #F97316;
+            --success: #10B981;
+            --danger: #EF4444;
+            --bg: #0A0A0F;
+            --surface: #13131C;
+            --surface2: #1C1C2E;
+            --border: rgba(255,255,255,0.08);
+            --text: #F1F1F5;
+            --muted: #8888AA;
+            --glass: rgba(255,255,255,0.04);
+        }
+        body { font-family: 'Inter', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; overflow-x: hidden; }
+
+        /* NAV */
+        nav {
+            position: fixed; top: 0; width: 100%; z-index: 100;
+            backdrop-filter: blur(20px);
+            background: rgba(10,10,15,0.8);
+            border-bottom: 1px solid var(--border);
+            padding: 0 5%;
+            display: flex; align-items: center; justify-content: space-between;
+            height: 70px;
+        }
+        .nav-logo { display: flex; align-items: center; gap: 10px; font-weight: 800; font-size: 1.2rem; }
+        .nav-logo span { font-size: 1.6rem; }
+        .nav-logo .brand { background: linear-gradient(135deg, var(--primary), var(--accent)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        .nav-links { display: flex; gap: 16px; }
+        .btn { display: inline-flex; align-items: center; gap: 8px; padding: 10px 22px; border-radius: 10px; font-weight: 600; font-size: 0.9rem; cursor: pointer; text-decoration: none; border: none; transition: all 0.2s; }
+        .btn-ghost { background: transparent; color: var(--muted); border: 1px solid var(--border); }
+        .btn-ghost:hover { background: var(--glass); color: var(--text); }
+        .btn-primary { background: linear-gradient(135deg, var(--primary), var(--primary-dark)); color: white; }
+        .btn-primary:hover { transform: translateY(-1px); box-shadow: 0 8px 25px rgba(108,99,255,0.4); }
+
+        /* HERO */
+        .hero {
+            min-height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: center;
+            padding: 120px 5% 80px;
+            position: relative; text-align: center;
+        }
+        .hero::before {
+            content: ''; position: absolute; top: 0; left: 0; right: 0; height: 100%;
+            background: radial-gradient(ellipse 80% 60% at 50% 0%, rgba(108,99,255,0.15) 0%, transparent 70%);
+            pointer-events: none;
+        }
+        .hero-badge {
+            display: inline-flex; align-items: center; gap: 8px;
+            background: rgba(108,99,255,0.15); border: 1px solid rgba(108,99,255,0.3);
+            padding: 6px 16px; border-radius: 100px; font-size: 0.8rem; color: #A5B4FC;
+            margin-bottom: 28px; animation: fadeInUp 0.6s ease both;
+        }
+        .hero h1 {
+            font-size: clamp(2.8rem, 7vw, 5.5rem); font-weight: 900; line-height: 1.08; letter-spacing: -0.03em;
+            animation: fadeInUp 0.6s ease 0.1s both;
+        }
+        .hero h1 .grad { background: linear-gradient(135deg, #6C63FF, #F97316, #EC4899); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        .hero p {
+            font-size: 1.2rem; color: var(--muted); margin: 24px 0 48px; max-width: 580px;
+            animation: fadeInUp 0.6s ease 0.2s both; line-height: 1.7;
+        }
+        .hero-actions { display: flex; gap: 14px; flex-wrap: wrap; justify-content: center; animation: fadeInUp 0.6s ease 0.3s both; }
+        .btn-large { padding: 16px 36px; font-size: 1rem; border-radius: 14px; }
+        .btn-outline { background: transparent; color: var(--text); border: 1px solid var(--border); }
+        .btn-outline:hover { background: var(--glass); border-color: var(--primary); }
+
+        /* FEATURES */
+        .features { padding: 100px 5%; }
+        .section-label { text-align: center; color: var(--primary); font-size: 0.85rem; font-weight: 600; letter-spacing: 0.12em; text-transform: uppercase; margin-bottom: 14px; }
+        .section-title { text-align: center; font-size: clamp(1.8rem, 4vw, 2.8rem); font-weight: 800; letter-spacing: -0.02em; margin-bottom: 60px; }
+        .cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 24px; max-width: 1100px; margin: 0 auto; }
+        .card {
+            background: var(--surface); border: 1px solid var(--border); border-radius: 20px;
+            padding: 36px 30px; transition: all 0.3s; position: relative; overflow: hidden;
+        }
+        .card::before {
+            content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px;
+            background: linear-gradient(90deg, var(--primary), var(--accent));
+            opacity: 0; transition: opacity 0.3s;
+        }
+        .card:hover { border-color: rgba(108,99,255,0.3); transform: translateY(-4px); box-shadow: 0 20px 60px rgba(0,0,0,0.4); }
+        .card:hover::before { opacity: 1; }
+        .card-icon { font-size: 2.8rem; margin-bottom: 20px; display: block; }
+        .card h3 { font-size: 1.2rem; font-weight: 700; margin-bottom: 10px; }
+        .card p { color: var(--muted); line-height: 1.7; font-size: 0.95rem; }
+
+        /* ROLES */
+        .roles { padding: 80px 5%; background: var(--surface); }
+        .roles-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px; max-width: 1000px; margin: 0 auto; }
+        .role-card {
+            background: var(--bg); border: 1px solid var(--border); border-radius: 20px;
+            padding: 36px; text-align: center; transition: all 0.3s; cursor: pointer;
+        }
+        .role-card:hover { border-color: var(--primary); transform: scale(1.02); }
+        .role-icon { font-size: 3.5rem; display: block; margin-bottom: 16px; }
+        .role-card h3 { font-size: 1.25rem; font-weight: 700; margin-bottom: 8px; }
+        .role-card p { color: var(--muted); margin-bottom: 24px; font-size: 0.9rem; }
+        .tag { display: inline-block; background: rgba(108,99,255,0.15); color: #A5B4FC; padding: 4px 12px; border-radius: 100px; font-size: 0.75rem; font-weight: 600; }
+
+        /* FOOTER */
+        footer { text-align: center; padding: 40px; color: var(--muted); font-size: 0.85rem; border-top: 1px solid var(--border); }
+
+        /* ANIMATIONS */
+        @keyframes fadeInUp { from { opacity: 0; transform: translateY(24px); } to { opacity: 1; transform: translateY(0); } }
+
+        /* FLOATING SHAPES */
+        .blob { position: absolute; border-radius: 50%; filter: blur(80px); pointer-events: none; z-index: 0; }
+        .blob1 { width: 400px; height: 400px; background: rgba(108,99,255,0.12); top: 10%; left: -10%; animation: float 8s ease-in-out infinite; }
+        .blob2 { width: 300px; height: 300px; background: rgba(249,115,22,0.1); top: 40%; right: -5%; animation: float 10s ease-in-out infinite reverse; }
+        @keyframes float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-30px); } }
+
+        .stat-row { display: flex; justify-content: center; gap: 48px; flex-wrap: wrap; margin-top: 80px; }
+        .stat { text-align: center; }
+        .stat-num { font-size: 2.5rem; font-weight: 900; background: linear-gradient(135deg, var(--primary), var(--accent)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        .stat-label { color: var(--muted); font-size: 0.85rem; margin-top: 4px; }
+    </style>
+</head>
+<body>
+    <nav>
+        <div class="nav-logo">
+            <span>🚀</span>
+            <div class="brand">Campus Express</div>
+        </div>
+        <div class="nav-links">
+            <a href="/login" class="btn btn-ghost">Login</a>
+            <a href="/register" class="btn btn-primary">Get Started</a>
+        </div>
+    </nav>
+
+    <section class="hero">
+        <div class="blob blob1"></div>
+        <div class="blob blob2"></div>
+        <div class="hero-badge">✨ Your All-in-One Campus Platform</div>
+        <h1>Campus Life,<br><span class="grad">Fully Automated</span></h1>
+        <p>Order food from your canteen, send documents to the print shop, and pay — all from one beautiful platform.</p>
+        <div class="hero-actions">
+            <a href="/register" class="btn btn-primary btn-large">Register</a>
+            <a href="/login" class="btn btn-outline btn-large">Sign In</a>
+        </div>
+        <div class="stat-row">
+            <div class="stat"><div class="stat-num">3</div><div class="stat-label">User Types</div></div>
+            <div class="stat"><div class="stat-num">Smart</div><div class="stat-label">Print Queue</div></div>
+            <div class="stat"><div class="stat-num">Live</div><div class="stat-label">Order Sync</div></div>
+            <div class="stat"><div class="stat-num">₹0</div><div class="stat-label">Setup Cost</div></div>
+        </div>
+    </section>
+
+    <section class="features">
+        <div class="section-label">Powerful Features</div>
+        <h2 class="section-title">Everything Your Campus Needs</h2>
+        <div class="cards">
+            <div class="card">
+                <span class="card-icon">🔐</span>
+                <h3>Secure Authentication</h3>
+                <p>Separate login flows for students, canteen owners, and stationery shops with role-based dashboards.</p>
+            </div>
+            <div class="card">
+                <span class="card-icon">🍔</span>
+                <h3>Smart Food Ordering</h3>
+                <p>Browse live menus, add items to cart, and pay instantly with your campus wallet.</p>
+            </div>
+            <div class="card">
+                <span class="card-icon">🖨️</span>
+                <h3>Smart Print Queue</h3>
+                <p>Upload documents, choose B&W or color, set copies — shortest jobs print first using OS scheduling.</p>
+            </div>
+            <div class="card">
+                <span class="card-icon">💳</span>
+                <h3>Integrated Wallet</h3>
+                <p>Pre-loaded campus wallet for instant payments. No cash needed, no delays.</p>
+            </div>
+            <div class="card">
+                <span class="card-icon">📊</span>
+                <h3>Live Vendor Dashboard</h3>
+                <p>Canteen and print shop owners get real-time order updates, manage menus, and track revenue.</p>
+            </div>
+            <div class="card">
+                <span class="card-icon">🔄</span>
+                <h3>Real-time Sync</h3>
+                <p>Menu updates by vendors instantly reflect for students. Everything stays in sync via SQLite.</p>
+            </div>
+        </div>
+    </section>
+
+    <section class="roles">
+        <div class="section-label">Choose Your Role</div>
+        <h2 class="section-title">Made for Everyone on Campus</h2>
+        <div class="roles-grid">
+            <div class="role-card" onclick="window.location='/register?role=student'">
+                <span class="role-icon">👨‍🎓</span>
+                <h3>Student</h3>
+                <p>Order food, print documents, track orders in real time</p>
+                <span class="tag">Campus Wallet</span>
+            </div>
+            <div class="role-card" onclick="window.location='/register?role=canteen'">
+                <span class="role-icon">🍽️</span>
+                <h3>Canteen Owner</h3>
+                <p>Manage your menu, receive live orders, mark completed</p>
+                <span class="tag">Menu Management</span>
+            </div>
+            <div class="role-card" onclick="window.location='/register?role=print_shop'">
+                <span class="role-icon">🖨️</span>
+                <h3>Print Shop Owner</h3>
+                <p>Receive print jobs in order, download files, set pricing</p>
+                <span class="tag">Print Queue</span>
+            </div>
+        </div>
+    </section>
+
+    <footer>
+        <p>🚀 Campus Express &nbsp;·&nbsp; Built with ♥ for smarter campuses</p>
+    </footer>
+</body>
+</html>

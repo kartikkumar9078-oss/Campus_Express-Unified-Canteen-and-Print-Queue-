@@ -1,0 +1,7 @@
+venv/
+__pycache__/
+*.pyc
+.DS_Store
+uploaded_prints/
+vendor_downloads/
+*.pdf

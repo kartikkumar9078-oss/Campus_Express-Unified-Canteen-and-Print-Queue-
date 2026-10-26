@@ -1,0 +1,317 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Print Shop Dashboard — Campus Express</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <style>
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+        :root {
+            --primary: #6C63FF; --primary-dark: #5850EC; --accent: #F97316;
+            --success: #10B981; --danger: #EF4444; --warning: #F59E0B;
+            --bg: #0A0A0F; --surface: #13131C; --surface2: #1C1C2E;
+            --border: rgba(255,255,255,0.08); --text: #F1F1F5; --muted: #8888AA;
+            --glass: rgba(255,255,255,0.04);
+        }
+        body { font-family: 'Inter', sans-serif; background: var(--bg); color: var(--text); display: flex; min-height: 100vh; }
+
+        .sidebar { width: 260px; flex-shrink: 0; background: var(--surface); border-right: 1px solid var(--border); display: flex; flex-direction: column; position: sticky; top: 0; height: 100vh; }
+        .sidebar-logo { padding: 24px 24px 20px; border-bottom: 1px solid var(--border); }
+        .logo-mark { display: flex; align-items: center; gap: 10px; font-weight: 800; font-size: 1.1rem; }
+        .logo-text { background: linear-gradient(135deg, #6C63FF, #F97316); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        .user-info { padding: 20px 24px; border-bottom: 1px solid var(--border); }
+        .user-avatar { width: 44px; height: 44px; background: linear-gradient(135deg, #6C63FF, #8B5CF6); border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; margin-bottom: 10px; }
+        .user-name { font-weight: 700; font-size: 0.95rem; }
+        .shop-badge { background: rgba(108,99,255,0.12); border: 1px solid rgba(108,99,255,0.25); padding: 6px 10px; border-radius: 8px; margin-top: 8px; font-size: 0.8rem; color: #A5B4FC; font-weight: 600; }
+        .nav-section { padding: 20px 16px 0; }
+        .nav-label { font-size: 0.7rem; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: 0.1em; padding: 0 8px; margin-bottom: 8px; }
+        .nav-item { display: flex; align-items: center; gap: 12px; padding: 11px 12px; border-radius: 10px; cursor: pointer; color: var(--muted); font-size: 0.88rem; font-weight: 500; transition: all 0.2s; border: none; background: transparent; width: 100%; text-align: left; }
+        .nav-item:hover { background: var(--glass); color: var(--text); }
+        .nav-item.active { background: rgba(108,99,255,0.12); color: #A5B4FC; }
+        .nav-icon { font-size: 1.1rem; width: 20px; text-align: center; }
+        .sidebar-footer { margin-top: auto; padding: 20px 24px; border-top: 1px solid var(--border); }
+        .btn-logout { display: flex; align-items: center; gap: 8px; color: var(--muted); font-size: 0.85rem; cursor: pointer; text-decoration: none; transition: color 0.2s; }
+        .btn-logout:hover { color: var(--danger); }
+
+        .main { flex: 1; overflow-y: auto; }
+        .topbar { padding: 20px 32px; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; background: rgba(10,10,15,0.8); backdrop-filter: blur(20px); z-index: 10; }
+        .topbar h1 { font-size: 1.3rem; font-weight: 800; }
+        .content { padding: 32px; }
+        .section { display: none; }
+        .section.active { display: block; }
+
+        .grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-bottom: 28px; }
+        .stat-card { background: var(--surface); border: 1px solid var(--border); border-radius: 16px; padding: 22px; }
+        .stat-icon { font-size: 2rem; margin-bottom: 12px; }
+        .stat-val { font-size: 1.8rem; font-weight: 800; }
+        .stat-lbl { color: var(--muted); font-size: 0.82rem; margin-top: 4px; }
+
+        .panel { background: var(--surface); border: 1px solid var(--border); border-radius: 20px; padding: 28px; margin-bottom: 24px; }
+        .panel-title { font-size: 1.05rem; font-weight: 800; margin-bottom: 20px; display: flex; align-items: center; gap: 10px; }
+
+        .badge { display: inline-flex; align-items: center; gap: 4px; padding: 5px 12px; border-radius: 100px; font-size: 0.72rem; font-weight: 600; }
+        .badge-paid { background: rgba(108,99,255,0.15); color: #A5B4FC; border: 1px solid rgba(108,99,255,0.25); }
+        .badge-accepted { background: rgba(245,158,11,0.15); color: #FCD34D; border: 1px solid rgba(245,158,11,0.25); }
+        .badge-completed { background: rgba(16,185,129,0.15); color: #34D399; border: 1px solid rgba(16,185,129,0.25); }
+        .badge-rejected { background: rgba(239,68,68,0.15); color: #FCA5A5; border: 1px solid rgba(239,68,68,0.25); }
+        .badge-bw { background: rgba(100,100,120,0.2); color: #D1D5DB; border: 1px solid rgba(255,255,255,0.1); }
+        .badge-color { background: rgba(236,72,153,0.15); color: #F9A8D4; border: 1px solid rgba(236,72,153,0.25); }
+
+        .btn { display: inline-flex; align-items: center; justify-content: center; gap: 6px; padding: 8px 16px; border-radius: 10px; font-weight: 600; font-size: 0.8rem; cursor: pointer; border: none; transition: all 0.2s; font-family: inherit; }
+        .btn-primary { background: linear-gradient(135deg, var(--primary), var(--primary-dark)); color: white; }
+        .btn-success { background: rgba(16,185,129,0.15); color: #34D399; border: 1px solid rgba(16,185,129,0.3); }
+        .btn-success:hover { background: rgba(16,185,129,0.25); }
+        .btn-danger { background: rgba(239,68,68,0.12); color: #FCA5A5; border: 1px solid rgba(239,68,68,0.25); }
+        .btn-danger:hover { background: rgba(239,68,68,0.22); }
+        .btn-warning { background: rgba(245,158,11,0.12); color: #FCD34D; border: 1px solid rgba(245,158,11,0.25); }
+        .btn-download { background: rgba(108,99,255,0.12); color: #A5B4FC; border: 1px solid rgba(108,99,255,0.25); }
+        .btn-download:hover { background: rgba(108,99,255,0.22); }
+
+        /* PRINT JOB CARDS */
+        .print-job-card { background: var(--surface2); border: 1px solid var(--border); border-radius: 16px; padding: 20px 24px; margin-bottom: 12px; display: flex; align-items: center; gap: 16px; position: relative; overflow: hidden; }
+        .print-job-card::before { content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 4px; }
+        .print-job-card.status-paid::before { background: #6C63FF; }
+        .print-job-card.status-accepted::before { background: #F59E0B; }
+        .print-job-card.status-completed::before { background: #10B981; }
+        .print-job-card.status-rejected::before { background: #EF4444; }
+        .job-doc-icon { width: 50px; height: 60px; background: rgba(108,99,255,0.12); border: 1px solid rgba(108,99,255,0.2); border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 1.8rem; flex-shrink: 0; }
+        .job-info { flex: 1; min-width: 0; }
+        .job-filename { font-weight: 700; font-size: 0.92rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .job-meta { display: flex; gap: 12px; flex-wrap: wrap; margin-top: 6px; }
+        .job-meta-item { display: flex; align-items: center; gap: 5px; color: var(--muted); font-size: 0.78rem; }
+
+
+        /* PRICING */
+        .pricing-form { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+        .form-group { display: flex; flex-direction: column; gap: 8px; }
+        label { font-size: 0.75rem; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: 0.05em; }
+        input { background: var(--bg); border: 1px solid var(--border); border-radius: 10px; padding: 12px 16px; color: var(--text); font-size: 1rem; font-family: inherit; outline: none; transition: all 0.2s; width: 100%; }
+        input:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(108,99,255,0.15); }
+
+
+
+        .live-dot { width: 8px; height: 8px; background: #10B981; border-radius: 50%; animation: pulse 1.5s ease infinite; display: inline-block; margin-right: 6px; }
+        @keyframes pulse { 0%, 100% { opacity: 1; transform: scale(1); } 50% { opacity: 0.6; transform: scale(1.3); } }
+
+        .toast-container { position: fixed; bottom: 24px; right: 24px; z-index: 9999; display: flex; flex-direction: column; gap: 10px; }
+        .toast { background: var(--surface2); border: 1px solid var(--border); border-radius: 14px; padding: 14px 20px; font-size: 0.88rem; font-weight: 500; min-width: 280px; animation: slideIn 0.3s ease; box-shadow: 0 8px 30px rgba(0,0,0,0.5); }
+        @keyframes slideIn { from { opacity: 0; transform: translateX(30px); } to { opacity: 1; transform: translateX(0); } }
+        @keyframes spin { to { transform: rotate(360deg); } }
+    </style>
+</head>
+<body>
+    <aside class="sidebar">
+        <div class="sidebar-logo">
+            <div class="logo-mark"><span>🚀</span><span class="logo-text">Campus Express</span></div>
+        </div>
+        <div class="user-info">
+            <div class="user-avatar">🖨️</div>
+            <div class="user-name">{{ vendor.name }}</div>
+            <div style="color:var(--muted);font-size:0.78rem;">Print Shop Owner</div>
+            <div class="shop-badge">🏪 {{ vendor.shop_name }}</div>
+        </div>
+        <div class="nav-section">
+            <div class="nav-label">Dashboard</div>
+            <button class="nav-item active" id="nav-queue" onclick="showSection('queue')"><span class="nav-icon">📋</span> Print Queue</button>
+            <button class="nav-item" id="nav-pricing" onclick="showSection('pricing')"><span class="nav-icon">💰</span> Pricing Settings</button>
+            <button class="nav-item" id="nav-history" onclick="showSection('history')"><span class="nav-icon">📊</span> Job History</button>
+        </div>
+        <div class="sidebar-footer">
+            <a href="/logout" class="btn-logout">🚪 Sign Out</a>
+        </div>
+    </aside>
+
+    <main class="main">
+        <div class="topbar">
+            <h1 id="page-title">🖨️ Print Queue</h1>
+            <button class="btn btn-primary" onclick="loadLiveQueue()">🔄 Refresh Queue</button>
+        </div>
+
+        <div class="content">
+            <!-- PRINT QUEUE -->
+            <div class="section active" id="section-queue">
+                <div class="grid-3">
+                    <div class="stat-card"><div class="stat-icon">📋</div><div class="stat-val" id="stat-total">—</div><div class="stat-lbl">Total Jobs</div></div>
+                    <div class="stat-card"><div class="stat-icon">⏳</div><div class="stat-val" id="stat-queued">—</div><div class="stat-lbl">In Queue</div></div>
+                    <div class="stat-card"><div class="stat-icon">✅</div><div class="stat-val" id="stat-done">—</div><div class="stat-lbl">Completed</div></div>
+                </div>
+
+
+                <div class="panel">
+                    <div class="panel-title"><span><span class="live-dot"></span>Print Jobs</span>
+                        <span style="font-size:0.78rem;color:var(--muted);font-weight:400;">Auto-refreshes every 20s</span>
+                    </div>
+                    <div id="queue-list">
+                        <div style="text-align:center;color:var(--muted);padding:40px;">Loading print queue...</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- PRICING -->
+            <div class="section" id="section-pricing">
+                <div class="panel" style="max-width:500px;">
+                    <div class="panel-title">💰 Pricing Configuration</div>
+                    <div style="color:var(--muted);font-size:0.85rem;margin-bottom:24px;">
+                        These prices are shown to students when they calculate print costs. Changes apply immediately to new orders.
+                    </div>
+                    <div class="pricing-form">
+                        <div class="form-group">
+                            <label>🖤 B&W Price per Page (₹)</label>
+                            <input type="number" id="bw-price" value="{{ pricing.bw_price_per_page if pricing else 1.5 }}" min="0.5" step="0.5">
+                        </div>
+                        <div class="form-group">
+                            <label>🌈 Color Price per Page (₹)</label>
+                            <input type="number" id="color-price" value="{{ pricing.color_price_per_page if pricing else 6.0 }}" min="1" step="0.5">
+                        </div>
+                    </div>
+                    <div style="background:rgba(108,99,255,0.08);border:1px solid rgba(108,99,255,0.2);border-radius:12px;padding:14px;margin:20px 0;font-size:0.85rem;">
+                        <div style="color:#A5B4FC;font-weight:700;margin-bottom:8px;">💡 Example Calculation</div>
+                        <div style="color:var(--muted);">10 pages × 2 copies × ₹<span id="eg-bw">1.5</span>/page (B&W) = <strong style="color:var(--text);">₹<span id="eg-total">30.00</span></strong></div>
+                    </div>
+                    <button class="btn btn-primary" onclick="savePricing()" style="width:100%;padding:14px;font-size:0.95rem;">💾 Save Pricing</button>
+                </div>
+            </div>
+
+            <!-- HISTORY -->
+            <div class="section" id="section-history">
+                <div class="panel">
+                    <div class="panel-title">📊 All Print Jobs</div>
+                    <div style="overflow-x:auto;">
+                        <table style="width:100%;border-collapse:collapse;">
+                            <thead>
+                                <tr>
+                                    <th style="text-align:left;font-size:0.72rem;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:0.08em;padding:12px 16px;border-bottom:1px solid var(--border);">#</th>
+                                    <th style="text-align:left;font-size:0.72rem;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:0.08em;padding:12px 16px;border-bottom:1px solid var(--border);">Ticket #</th>
+                                    <th style="text-align:left;font-size:0.72rem;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:0.08em;padding:12px 16px;border-bottom:1px solid var(--border);">Student</th>
+                                    <th style="text-align:left;font-size:0.72rem;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:0.08em;padding:12px 16px;border-bottom:1px solid var(--border);">File</th>
+                                    <th style="text-align:left;font-size:0.72rem;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:0.08em;padding:12px 16px;border-bottom:1px solid var(--border);">Pages</th>
+                                    <th style="text-align:left;font-size:0.72rem;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:0.08em;padding:12px 16px;border-bottom:1px solid var(--border);">Type</th>
+                                    <th style="text-align:left;font-size:0.72rem;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:0.08em;padding:12px 16px;border-bottom:1px solid var(--border);">Amount</th>
+                                    <th style="text-align:left;font-size:0.72rem;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:0.08em;padding:12px 16px;border-bottom:1px solid var(--border);">Status</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for o in orders %}
+                                <tr style="border-bottom:1px solid var(--border);">
+                                    <td style="padding:14px 16px;"><strong>#{{ o.id }}</strong></td>
+                                    <td style="padding:14px 16px;"><span style="font-family:monospace;font-size:0.8rem;background:rgba(108,99,255,0.1);border:1px solid rgba(108,99,255,0.2);color:#A5B4FC;padding:4px 8px;border-radius:6px;">{{ o.ticket_number or '—' }}</span></td>
+                                    <td style="padding:14px 16px;">{{ o.student_name }}</td>
+                                    <td style="padding:14px 16px;font-size:0.82rem;color:var(--muted);max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">{{ o.original_filename or '—' }}</td>
+                                    <td style="padding:14px 16px;">{{ o.total_pages or '—' }}pg</td>
+                                    <td style="padding:14px 16px;"><span class="badge badge-{{ o.print_type or 'bw' }}">{{ '🖤 B&W' if o.print_type == 'bw' else '🌈 Color' }}</span></td>
+                                    <td style="padding:14px 16px;font-weight:700;color:var(--accent);">₹{{ "%.2f"|format(o.total_amount) }}</td>
+                                    <td style="padding:14px 16px;"><span class="badge badge-{{ o.status }}">{{ o.status.title() }}</span></td>
+                                </tr>
+                                {% else %}
+                                <tr><td colspan="8" style="text-align:center;color:var(--muted);padding:40px;">No print jobs yet.</td></tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <div class="toast-container" id="toast-container"></div>
+
+    <script>
+        function showSection(name) {
+            document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+            document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+            document.getElementById('section-' + name).classList.add('active');
+            document.getElementById('nav-' + name).classList.add('active');
+            const titles = { queue: '🖨️ Print Queue', pricing: '💰 Pricing Settings', history: '📊 Job History' };
+            document.getElementById('page-title').textContent = titles[name];
+        }
+
+        function toast(msg) {
+            const tc = document.getElementById('toast-container');
+            const el = document.createElement('div');
+            el.className = 'toast';
+            el.textContent = msg;
+            tc.appendChild(el);
+            setTimeout(() => el.remove(), 4000);
+        }
+
+        async function loadLiveQueue() {
+            const res = await fetch('/api/print/orders/live');
+            const orders = await res.json();
+            const list = document.getElementById('queue-list');
+            const queued = orders.filter(o => o.status !== 'completed' && o.status !== 'rejected');
+            const done = orders.filter(o => o.status === 'completed');
+
+            document.getElementById('stat-total').textContent = orders.length;
+            document.getElementById('stat-queued').textContent = queued.length;
+            document.getElementById('stat-done').textContent = done.length;
+
+            if (!orders.length) {
+                list.innerHTML = '<div style="text-align:center;color:var(--muted);padding:40px;">🎉 No print jobs in queue. Waiting for students...</div>';
+                return;
+            }
+
+            list.innerHTML = orders.map((o, idx) => `
+                <div class="print-job-card status-${o.status}" id="pcard-${o.id}">
+                    <div class="job-doc-icon">📄</div>
+                    <div class="job-info">
+                        <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;flex-wrap:wrap;">
+                            <span style="background:rgba(108,99,255,0.15);border:1px solid rgba(108,99,255,0.3);color:#A5B4FC;padding:4px 10px;border-radius:100px;font-family:'Courier New',monospace;font-size:0.78rem;font-weight:800;letter-spacing:0.04em;">🎫 ${o.ticket_number || '#' + o.id}</span>
+                            <span class="badge badge-${o.status}">${o.status.charAt(0).toUpperCase()+o.status.slice(1)}</span>
+                            <span class="badge badge-${o.print_type || 'bw'}">${o.print_type === 'color' ? '🌈 Color' : '🖤 B&W'}</span>
+                        </div>
+                        <div class="job-filename">${o.original_filename || 'Unknown file'}</div>
+                        <div class="job-meta">
+                            <span class="job-meta-item">👨‍🎓 ${o.student_name}</span>
+                            <span class="job-meta-item">📄 ${o.page_count || 0} pages × ${o.copies || 1} copies = ${o.total_pages || 0} total</span>
+                            <span class="job-meta-item">₹${(o.total_amount || 0).toFixed(2)}</span>
+                        </div>
+                    </div>
+                    <div style="display:flex;flex-direction:column;gap:8px;align-items:flex-end;">
+                        ${o.stored_filename ? `<a href="/api/print/download/${o.stored_filename}" class="btn btn-download">⬇️ Download</a>` : ''}
+                        ${o.status !== 'completed' && o.status !== 'rejected' ? `
+                            <button class="btn btn-success" onclick="updateJobStatus(${o.id},'accepted')">✅ Accept</button>
+                            <button class="btn btn-warning" onclick="updateJobStatus(${o.id},'completed')">🏁 Done</button>
+                            <button class="btn btn-danger" onclick="updateJobStatus(${o.id},'rejected')">❌ Reject</button>
+                        ` : ''}
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        async function updateJobStatus(id, status) {
+            const res = await fetch(`/api/print/order/status/${id}`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ status })
+            });
+            const data = await res.json();
+            if (data.success) { toast(`Job #${id} marked as ${status}`); loadLiveQueue(); }
+        }
+
+        async function savePricing() {
+            const bw = parseFloat(document.getElementById('bw-price').value);
+            const color = parseFloat(document.getElementById('color-price').value);
+            const res = await fetch('/api/print/pricing/update', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ bw, color })
+            });
+            const data = await res.json();
+            if (data.success) toast('✅ Pricing saved! Students will see updated prices immediately.');
+        }
+
+        // Update example calculation
+        ['bw-price', 'color-price'].forEach(id => {
+            document.getElementById(id).addEventListener('input', () => {
+                const bw = parseFloat(document.getElementById('bw-price').value) || 1.5;
+                document.getElementById('eg-bw').textContent = bw;
+                document.getElementById('eg-total').textContent = (10 * 2 * bw).toFixed(2);
+            });
+        });
+
+        loadLiveQueue();
+        setInterval(loadLiveQueue, 20000);
+    </script>
+</body>
+</html>

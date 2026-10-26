@@ -1,0 +1,1159 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Student Dashboard — Campus Express</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <style>
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+        :root {
+            --primary: #6C63FF; --primary-dark: #5850EC; --accent: #F97316;
+            --success: #10B981; --danger: #EF4444; --warning: #F59E0B;
+            --bg: #0A0A0F; --surface: #13131C; --surface2: #1C1C2E;
+            --border: rgba(255,255,255,0.08); --text: #F1F1F5; --muted: #8888AA;
+            --glass: rgba(255,255,255,0.04);
+        }
+        body { font-family: 'Inter', sans-serif; background: var(--bg); color: var(--text); display: flex; min-height: 100vh; }
+
+        /* SIDEBAR */
+        .sidebar {
+            width: 260px; flex-shrink: 0; background: var(--surface); border-right: 1px solid var(--border);
+            display: flex; flex-direction: column; position: sticky; top: 0; height: 100vh; overflow-y: auto;
+        }
+        .sidebar-logo { padding: 24px 24px 20px; border-bottom: 1px solid var(--border); }
+        .logo-mark { display: flex; align-items: center; gap: 10px; font-weight: 800; font-size: 1.1rem; }
+        .logo-text { background: linear-gradient(135deg, #6C63FF, #F97316); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        .user-info { padding: 20px 24px; border-bottom: 1px solid var(--border); }
+        .user-avatar { width: 44px; height: 44px; background: linear-gradient(135deg, var(--primary), var(--accent)); border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 1.3rem; font-weight: 700; margin-bottom: 10px; }
+        .user-name { font-weight: 700; font-size: 0.95rem; }
+        .user-role { color: var(--muted); font-size: 0.78rem; text-transform: uppercase; letter-spacing: 0.05em; }
+        .wallet-badge { display: flex; align-items: center; gap: 6px; background: rgba(16,185,129,0.12); border: 1px solid rgba(16,185,129,0.25); padding: 8px 12px; border-radius: 10px; margin-top: 10px; }
+        .wallet-badge span { color: #34D399; font-size: 0.82rem; font-weight: 600; }
+        .wallet-amt { color: #6EE7B7; font-weight: 800; font-size: 1rem; }
+        .nav-section { padding: 20px 16px 0; }
+        .nav-label { font-size: 0.7rem; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: 0.1em; padding: 0 8px; margin-bottom: 8px; }
+        .nav-item { display: flex; align-items: center; gap: 12px; padding: 11px 12px; border-radius: 10px; cursor: pointer; color: var(--muted); font-size: 0.88rem; font-weight: 500; transition: all 0.2s; border: none; background: transparent; width: 100%; text-align: left; }
+        .nav-item:hover { background: var(--glass); color: var(--text); }
+        .nav-item.active { background: rgba(108,99,255,0.15); color: #A5B4FC; }
+        .nav-item .nav-icon { font-size: 1.1rem; width: 20px; text-align: center; }
+        .sidebar-footer { margin-top: auto; padding: 20px 24px; border-top: 1px solid var(--border); }
+        .btn-logout { display: flex; align-items: center; gap: 8px; color: var(--muted); font-size: 0.85rem; cursor: pointer; text-decoration: none; transition: color 0.2s; }
+        .btn-logout:hover { color: var(--danger); }
+
+        /* MAIN */
+        .main { flex: 1; overflow-y: auto; }
+        .topbar { padding: 20px 32px; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; background: rgba(10,10,15,0.8); backdrop-filter: blur(20px); z-index: 10; }
+        .topbar h1 { font-size: 1.3rem; font-weight: 800; }
+        .topbar-right { display: flex; align-items: center; gap: 12px; }
+        .wallet-chip { background: rgba(16,185,129,0.12); border: 1px solid rgba(16,185,129,0.25); padding: 8px 16px; border-radius: 100px; color: #6EE7B7; font-weight: 700; font-size: 0.9rem; }
+
+        .content { padding: 32px; }
+        .section { display: none; }
+        .section.active { display: block; }
+
+        /* CARDS */
+        .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+        .grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+        .stat-card { background: var(--surface); border: 1px solid var(--border); border-radius: 16px; padding: 22px; }
+        .stat-card .stat-icon { font-size: 2rem; margin-bottom: 12px; }
+        .stat-card .stat-val { font-size: 1.8rem; font-weight: 800; }
+        .stat-card .stat-lbl { color: var(--muted); font-size: 0.82rem; margin-top: 4px; }
+
+        /* VENDOR CARDS */
+        .vendor-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 16px; margin-bottom: 32px; }
+        .vendor-card { background: var(--surface); border: 1px solid var(--border); border-radius: 16px; padding: 20px; cursor: pointer; transition: all 0.25s; }
+        .vendor-card:hover { border-color: var(--primary); transform: translateY(-3px); box-shadow: 0 12px 40px rgba(0,0,0,0.4); }
+        .vendor-card.selected { border-color: var(--primary); background: rgba(108,99,255,0.08); }
+        .vendor-header { display: flex; align-items: center; gap: 12px; margin-bottom: 10px; }
+        .vendor-icon { width: 48px; height: 48px; border-radius: 14px; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; background: linear-gradient(135deg, rgba(108,99,255,0.2), rgba(249,115,22,0.2)); }
+        .vendor-name { font-weight: 700; font-size: 1rem; }
+        .vendor-type { font-size: 0.75rem; color: var(--muted); }
+        .badge { display: inline-flex; align-items: center; gap: 4px; padding: 4px 10px; border-radius: 100px; font-size: 0.72rem; font-weight: 600; }
+        .badge-open { background: rgba(16,185,129,0.15); color: #34D399; border: 1px solid rgba(16,185,129,0.25); }
+        .badge-pending { background: rgba(245,158,11,0.15); color: #FCD34D; border: 1px solid rgba(245,158,11,0.25); }
+        .badge-paid { background: rgba(16,185,129,0.15); color: #34D399; border: 1px solid rgba(16,185,129,0.25); }
+        .badge-accepted { background: rgba(108,99,255,0.15); color: #A5B4FC; border: 1px solid rgba(108,99,255,0.25); }
+        .badge-completed { background: rgba(16,185,129,0.15); color: #34D399; }
+        .badge-rejected { background: rgba(239,68,68,0.15); color: #FCA5A5; }
+
+        /* MENU */
+        .menu-panel { background: var(--surface); border: 1px solid var(--border); border-radius: 20px; padding: 28px; }
+        .panel-title { font-size: 1.1rem; font-weight: 700; margin-bottom: 20px; display: flex; align-items: center; gap: 10px; }
+        .menu-items-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 12px; }
+        .menu-item-card { background: var(--surface2); border: 1px solid var(--border); border-radius: 14px; cursor: pointer; transition: all 0.2s; position: relative; overflow: hidden; }
+        .menu-item-card:hover { border-color: var(--primary); transform: translateY(-2px); box-shadow: 0 8px 24px rgba(0,0,0,0.3); }
+        .menu-item-card.in-cart { border-color: var(--success); background: rgba(16,185,129,0.08); }
+        .menu-item-body { padding: 14px 16px 16px; }
+        .item-photo { width: 100%; height: 130px; object-fit: cover; display: block; border-radius: 0; }
+        .item-emoji { font-size: 2.4rem; margin-bottom: 8px; display: block; }
+        .item-emoji-wrap { padding: 16px 16px 0; }
+        .item-name { font-weight: 600; font-size: 0.9rem; margin-bottom: 4px; }
+        .item-desc { color: var(--muted); font-size: 0.75rem; margin-bottom: 10px; line-height: 1.4; }
+        .item-footer { display: flex; align-items: center; justify-content: space-between; }
+        .item-price { font-weight: 800; color: var(--accent); font-size: 1rem; }
+        .add-btn { width: 30px; height: 30px; border-radius: 8px; background: var(--primary); border: none; color: white; cursor: pointer; font-size: 1.2rem; display: flex; align-items: center; justify-content: center; transition: all 0.2s; }
+        .add-btn:hover { background: var(--primary-dark); }
+        .cart-qty { position: absolute; top: 10px; right: 10px; background: var(--primary); color: white; width: 22px; height: 22px; border-radius: 50%; font-size: 0.72rem; font-weight: 700; display: flex; align-items: center; justify-content: center; }
+
+        /* CART */
+        .cart-panel { background: var(--surface); border: 1px solid var(--border); border-radius: 20px; padding: 24px; height: fit-content; position: sticky; top: 90px; }
+        .cart-items { max-height: 320px; overflow-y: auto; margin-bottom: 16px; }
+        .cart-item { display: flex; align-items: center; gap: 12px; padding: 10px 0; border-bottom: 1px solid var(--border); }
+        .cart-item:last-child { border-bottom: none; }
+        .cart-item-name { flex: 1; font-size: 0.88rem; font-weight: 600; }
+        .qty-controls { display: flex; align-items: center; gap: 8px; }
+        .qty-btn { width: 26px; height: 26px; border-radius: 7px; border: 1px solid var(--border); background: var(--surface2); color: var(--text); cursor: pointer; font-size: 1rem; display: flex; align-items: center; justify-content: center; transition: all 0.2s; }
+        .qty-btn:hover { background: var(--primary); border-color: var(--primary); }
+        .qty-num { font-weight: 700; min-width: 20px; text-align: center; font-size: 0.9rem; }
+        .cart-item-price { font-weight: 700; color: var(--accent); font-size: 0.9rem; min-width: 60px; text-align: right; }
+        .cart-total { display: flex; justify-content: space-between; padding: 14px 0 18px; border-top: 1px solid var(--border); font-weight: 700; }
+        .cart-total-amt { font-size: 1.2rem; color: var(--accent); }
+        .empty-cart { text-align: center; color: var(--muted); padding: 24px 0; font-size: 0.88rem; }
+
+        /* BUTTONS */
+        .btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; padding: 12px 24px; border-radius: 12px; font-weight: 600; font-size: 0.9rem; cursor: pointer; text-decoration: none; border: none; transition: all 0.2s; font-family: inherit; }
+        .btn-primary { background: linear-gradient(135deg, var(--primary), var(--primary-dark)); color: white; }
+        .btn-primary:hover { transform: translateY(-1px); box-shadow: 0 8px 25px rgba(108,99,255,0.4); }
+        .btn-primary:disabled { opacity: 0.5; cursor: not-allowed; transform: none; box-shadow: none; }
+        .btn-success { background: linear-gradient(135deg, var(--success), #059669); color: white; width: 100%; }
+        .btn-success:hover { transform: translateY(-1px); box-shadow: 0 8px 25px rgba(16,185,129,0.4); }
+        .btn-success:disabled { opacity: 0.5; cursor: not-allowed; transform: none; box-shadow: none; }
+
+        /* PRINT SECTION */
+        .print-layout { display: grid; grid-template-columns: 1fr 340px; gap: 24px; align-items: start; }
+        .upload-zone { border: 2px dashed var(--border); border-radius: 16px; padding: 48px; text-align: center; cursor: pointer; transition: all 0.3s; background: var(--glass); }
+        .upload-zone:hover, .upload-zone.drag-over { border-color: var(--primary); background: rgba(108,99,255,0.06); }
+        .upload-zone .upload-icon { font-size: 3rem; margin-bottom: 12px; }
+        .upload-zone p { color: var(--muted); font-size: 0.9rem; }
+        .upload-zone .file-chosen { color: var(--success); font-weight: 600; margin-top: 8px; }
+        input[type="file"] { display: none; }
+
+        .print-options { background: var(--surface); border: 1px solid var(--border); border-radius: 16px; padding: 20px; }
+        .option-group { margin-bottom: 20px; }
+        .option-label { font-size: 0.78rem; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 10px; }
+        .radio-group { display: flex; gap: 10px; }
+        .radio-card { flex: 1; border: 1px solid var(--border); border-radius: 12px; padding: 14px; cursor: pointer; text-align: center; transition: all 0.2s; }
+        .radio-card:hover { border-color: rgba(108,99,255,0.4); }
+        .radio-card.selected { border-color: var(--primary); background: rgba(108,99,255,0.1); }
+        .radio-card .rc-icon { font-size: 1.6rem; margin-bottom: 6px; }
+        .radio-card .rc-name { font-size: 0.82rem; font-weight: 700; }
+        .radio-card .rc-price { font-size: 0.75rem; color: var(--muted); }
+        input[type="number"] { width: 100%; background: var(--surface2); border: 1px solid var(--border); border-radius: 10px; padding: 10px 14px; color: var(--text); font-size: 0.95rem; font-family: inherit; outline: none; }
+        input[type="number"]:focus { border-color: var(--primary); }
+
+        .price-breakdown { background: rgba(108,99,255,0.08); border: 1px solid rgba(108,99,255,0.2); border-radius: 12px; padding: 16px; margin-bottom: 16px; }
+        .price-row { display: flex; justify-content: space-between; font-size: 0.85rem; color: var(--muted); padding: 4px 0; }
+        .price-row.total { color: var(--text); font-weight: 800; font-size: 1rem; border-top: 1px solid var(--border); margin-top: 8px; padding-top: 10px; }
+
+        /* ORDERS TABLE */
+        .orders-table-wrap { overflow-x: auto; }
+        table { width: 100%; border-collapse: collapse; }
+        th { text-align: left; font-size: 0.72rem; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: 0.08em; padding: 12px 16px; border-bottom: 1px solid var(--border); }
+        td { padding: 14px 16px; border-bottom: 1px solid var(--border); font-size: 0.88rem; vertical-align: middle; }
+        tr:hover td { background: var(--glass); }
+        tr:last-child td { border-bottom: none; }
+
+        /* MODAL (Payment) */
+        .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.7); backdrop-filter: blur(8px); z-index: 1000; display: flex; align-items: center; justify-content: center; opacity: 0; visibility: hidden; transition: all 0.25s; }
+        .modal-overlay.show { opacity: 1; visibility: visible; }
+        .modal { background: var(--surface2); border: 1px solid var(--border); border-radius: 24px; padding: 40px; max-width: 460px; width: 90%; transform: scale(0.9) translateY(20px); transition: all 0.25s; }
+        .modal-overlay.show .modal { transform: scale(1) translateY(0); }
+        .modal-icon { font-size: 3rem; text-align: center; margin-bottom: 16px; }
+        .modal h2 { text-align: center; font-size: 1.4rem; font-weight: 800; margin-bottom: 8px; }
+        .modal p { text-align: center; color: var(--muted); margin-bottom: 28px; font-size: 0.9rem; }
+        .receipt-box { background: var(--surface); border: 1px solid var(--border); border-radius: 14px; padding: 20px; margin-bottom: 24px; }
+        .receipt-row { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid var(--border); font-size: 0.88rem; }
+        .receipt-row:last-child { border-bottom: none; font-weight: 700; color: var(--accent); }
+        .receipt-row .label { color: var(--muted); }
+
+        /* PAYMENT METHOD SELECTOR */
+        .pay-method-label { font-size: 0.72rem; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 10px; }
+        .pay-method-tabs { display: flex; gap: 10px; margin-bottom: 18px; }
+        .pay-tab { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 5px; padding: 12px 8px; border-radius: 14px; border: 2px solid var(--border); background: var(--surface); cursor: pointer; transition: all 0.2s; }
+        .pay-tab:hover { border-color: rgba(108,99,255,0.4); background: rgba(108,99,255,0.06); }
+        .pay-tab.active { border-color: var(--primary); background: rgba(108,99,255,0.12); }
+        .pay-tab .pt-icon { font-size: 1.5rem; }
+        .pay-tab .pt-label { font-size: 0.78rem; font-weight: 700; color: var(--text); }
+        .pay-tab .pt-sub { font-size: 0.67rem; color: var(--muted); }
+        .pay-input-wrap { margin-bottom: 16px; }
+        .pay-input-wrap label { display: block; font-size: 0.72rem; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 6px; }
+        .pay-input-wrap input { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 11px 14px; color: var(--text); font-size: 0.9rem; font-family: inherit; outline: none; transition: border 0.2s; width: 100%; box-sizing: border-box; }
+        .pay-input-wrap input:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(108,99,255,0.15); }
+        .card-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 10px; }
+
+        /* TOAST */
+        .toast-container { position: fixed; bottom: 24px; right: 24px; z-index: 9999; display: flex; flex-direction: column; gap: 10px; }
+        .toast { background: var(--surface2); border: 1px solid var(--border); border-radius: 14px; padding: 14px 20px; font-size: 0.88rem; font-weight: 500; display: flex; align-items: center; gap: 10px; min-width: 280px; animation: slideIn 0.3s ease; box-shadow: 0 8px 30px rgba(0,0,0,0.5); }
+        .toast.success { border-color: rgba(16,185,129,0.4); }
+        .toast.error { border-color: rgba(239,68,68,0.4); }
+        @keyframes slideIn { from { opacity: 0; transform: translateX(30px); } to { opacity: 1; transform: translateX(0); } }
+        .spinner { width: 20px; height: 20px; border: 2px solid rgba(255,255,255,0.3); border-top-color: white; border-radius: 50%; animation: spin 0.6s linear infinite; display: inline-block; }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        .hidden { display: none !important; }
+        .section-heading { font-size: 1.1rem; font-weight: 800; margin-bottom: 20px; display: flex; align-items: center; gap: 10px; }
+        .divider-line { height: 1px; background: var(--border); margin: 28px 0; }
+
+        /* PAYMENT GATEWAY MODAL */
+        .pg-modal { background: var(--surface2); border: 1px solid var(--border); border-radius: 24px; width: 90%; max-width: 500px; overflow: hidden; transform: scale(0.9) translateY(20px); transition: all 0.28s cubic-bezier(.22,.9,.34,1.1); }
+        .modal-overlay.show .pg-modal { transform: scale(1) translateY(0); }
+        .pg-header { background: linear-gradient(135deg, #6C63FF 0%, #9C3FE4 60%, #F97316 100%); padding: 24px 28px 20px; position: relative; }
+        .pg-logo { display: flex; align-items: center; gap: 10px; margin-bottom: 16px; }
+        .pg-logo-mark { background: rgba(255,255,255,0.2); border-radius: 10px; width: 36px; height: 36px; display: flex; align-items: center; justify-content: center; font-size: 1.2rem; }
+        .pg-logo-name { font-weight: 800; font-size: 1rem; color: white; }
+        .pg-logo-tag { font-size: 0.65rem; color: rgba(255,255,255,0.65); font-weight: 500; letter-spacing: 0.08em; text-transform: uppercase; }
+        .pg-amount-display { color: white; }
+        .pg-amount-display .pg-pay-label { font-size: 0.75rem; color: rgba(255,255,255,0.7); font-weight: 500; margin-bottom: 2px; }
+        .pg-amount-display .pg-pay-amount { font-size: 2rem; font-weight: 900; letter-spacing: -0.02em; }
+        .pg-close-btn { position: absolute; top: 16px; right: 16px; background: rgba(255,255,255,0.15); border: none; color: white; width: 30px; height: 30px; border-radius: 50%; cursor: pointer; font-size: 1rem; display: flex; align-items: center; justify-content: center; transition: background 0.2s; }
+        .pg-close-btn:hover { background: rgba(255,255,255,0.3); }
+        .pg-body { padding: 24px 28px 28px; }
+
+        /* Tabs */
+        .pg-tabs { display: flex; gap: 8px; margin-bottom: 20px; background: var(--surface); border-radius: 14px; padding: 6px; }
+        .pg-tab { flex: 1; padding: 10px 6px; border-radius: 10px; border: none; background: transparent; color: var(--muted); cursor: pointer; font-size: 0.8rem; font-weight: 600; font-family: inherit; display: flex; flex-direction: column; align-items: center; gap: 3px; transition: all 0.2s; }
+        .pg-tab .pg-tab-icon { font-size: 1.2rem; }
+        .pg-tab:hover { color: var(--text); }
+        .pg-tab.active { background: var(--surface2); color: var(--text); box-shadow: 0 2px 8px rgba(0,0,0,0.3); }
+
+        /* Panels */
+        .pg-panel { display: none; }
+        .pg-panel.active { display: block; }
+        .pg-field { margin-bottom: 14px; }
+        .pg-field label { display: block; font-size: 0.7rem; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 6px; }
+        .pg-field input { width: 100%; background: var(--surface); border: 1.5px solid var(--border); border-radius: 10px; padding: 11px 14px; color: var(--text); font-size: 0.92rem; font-family: inherit; outline: none; transition: border 0.2s, box-shadow 0.2s; box-sizing: border-box; }
+        .pg-field input:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(108,99,255,0.15); }
+        .pg-two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+        .pg-amount-row { display: grid; grid-template-columns: repeat(4,1fr); gap: 8px; margin-bottom: 14px; }
+        .pg-quick-amt { background: var(--surface); border: 1.5px solid var(--border); border-radius: 10px; padding: 9px 4px; color: var(--text); font-size: 0.82rem; font-weight: 700; cursor: pointer; font-family: inherit; transition: all 0.2s; text-align: center; }
+        .pg-quick-amt:hover { border-color: var(--primary); background: rgba(108,99,255,0.1); color: var(--primary); }
+
+        /* Screens */
+        .pg-screen { display: none; flex-direction: column; align-items: center; justify-content: center; min-height: 280px; text-align: center; }
+        .pg-screen.active { display: flex; }
+
+        /* Processing */
+        .pg-spinner-ring { width: 64px; height: 64px; border: 4px solid rgba(108,99,255,0.2); border-top-color: var(--primary); border-radius: 50%; animation: spin 0.8s linear infinite; margin-bottom: 20px; }
+        .pg-proc-title { font-size: 1.1rem; font-weight: 700; margin-bottom: 8px; }
+        .pg-proc-sub { color: var(--muted); font-size: 0.85rem; }
+        .pg-proc-dots::after { content: '...'; animation: dots 1.5s steps(4,end) infinite; }
+        @keyframes dots { 0%,20%{content:'.'} 40%{content:'..'} 60%,100%{content:'...'} }
+
+        /* Success */
+        .pg-success-icon { width: 72px; height: 72px; background: linear-gradient(135deg, #10B981, #34D399); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 2rem; margin-bottom: 20px; animation: popIn 0.4s cubic-bezier(.22,.9,.34,1.2); }
+        @keyframes popIn { from { transform: scale(0); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+        .pg-success-amount { font-size: 2rem; font-weight: 900; color: #34D399; margin-bottom: 6px; }
+        .pg-success-title { font-size: 1.1rem; font-weight: 700; margin-bottom: 12px; }
+        .pg-txn-badge { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 8px 14px; font-family: monospace; font-size: 0.8rem; color: var(--muted); margin-bottom: 20px; }
+
+        /* Failed */
+        .pg-fail-icon { width: 72px; height: 72px; background: linear-gradient(135deg, #EF4444, #F87171); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 2rem; margin-bottom: 20px; animation: popIn 0.4s cubic-bezier(.22,.9,.34,1.2); }
+        .pg-fail-title { font-size: 1.1rem; font-weight: 700; margin-bottom: 8px; color: #FCA5A5; }
+        .pg-fail-reason { color: var(--muted); font-size: 0.85rem; margin-bottom: 20px; }
+        .pg-test-badge { background: rgba(245,158,11,0.1); border: 1px solid rgba(245,158,11,0.3); border-radius: 8px; padding: 10px 14px; font-size: 0.78rem; color: #FCD34D; margin-bottom: 16px; text-align: left; line-height: 1.5; }
+        .pg-test-badge strong { color: #F59E0B; }
+    </style>
+</head>
+<body>
+    <!-- SIDEBAR -->
+    <aside class="sidebar">
+        <div class="sidebar-logo">
+            <div class="logo-mark"><span>🚀</span><span class="logo-text">Campus Express</span></div>
+        </div>
+        <div class="user-info">
+            <div class="user-avatar">{{ student.name[0].upper() }}</div>
+            <div class="user-name">{{ student.name }}</div>
+            <div class="user-role">👨‍🎓 Student</div>
+            <div class="wallet-badge">
+                <span>💰 Wallet:</span>
+                <span class="wallet-amt" id="sidebar-balance">₹{{ "%.2f"|format(student.balance) }}</span>
+            </div>
+        </div>
+        <div class="nav-section">
+            <div class="nav-label">Menu</div>
+            <button class="nav-item active" id="nav-overview" onclick="showSection('overview')">&#127968; Overview</button>
+            <button class="nav-item" id="nav-canteen" onclick="showSection('canteen')">&#127828; Order Food</button>
+            <button class="nav-item" id="nav-print" onclick="showSection('print')">&#128424;&#65039; Print Documents</button>
+            <button class="nav-item" id="nav-orders" onclick="showSection('orders')">&#128203; My Orders</button>
+            <button class="nav-item" id="nav-payments" onclick="showSection('payments');loadPaymentHistory()">&#128179; Payment History</button>
+        </div>
+        <div class="sidebar-footer">
+            <a href="/logout" class="btn-logout">🚪 Sign Out</a>
+        </div>
+    </aside>
+
+    <!-- MAIN -->
+    <main class="main">
+        <div class="topbar">
+            <h1 id="page-title">Overview</h1>
+        <div class="topbar-right">
+                <div class="wallet-chip">💰 <span id="topbar-balance">₹{{ "%.2f"|format(student.balance) }}</span></div>
+                <button class="btn btn-primary" style="font-size:0.82rem;padding:9px 18px;" onclick="openTopup()">➕ Top Up</button>
+            </div>
+        </div>
+
+        <div class="content">
+            <!-- OVERVIEW -->
+            <div class="section active" id="section-overview">
+                <div class="grid-3" style="margin-bottom:28px;">
+                    <div class="stat-card">
+                        <div class="stat-icon">💰</div>
+                        <div class="stat-val" id="balance-stat">₹{{ "%.2f"|format(student.balance) }}</div>
+                        <div class="stat-lbl">Wallet Balance</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon">🍔</div>
+                        <div class="stat-val">{{ canteens|length }}</div>
+                        <div class="stat-lbl">Canteens Available</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon">🖨️</div>
+                        <div class="stat-val">{{ print_shops|length }}</div>
+                        <div class="stat-lbl">Print Shops Open</div>
+                    </div>
+                </div>
+
+                <div class="grid-2">
+                    <div>
+                        <div class="section-heading">🍔 Available Canteens</div>
+                        {% for c in canteens %}
+                        <div class="vendor-card" style="margin-bottom:12px;" onclick="showSection('canteen'); selectVendor({{ c.id }}, '{{ c.shop_name }}', '{{ c.description or '' }}')">
+                            <div class="vendor-header">
+                                <div class="vendor-icon">🍽️</div>
+                                <div>
+                                    <div class="vendor-name">{{ c.shop_name }}</div>
+                                    <div class="vendor-type">Canteen • {{ c.name }}</div>
+                                </div>
+                                <span class="badge badge-open" style="margin-left:auto;">🟢 Open</span>
+                            </div>
+                            <p style="color:var(--muted);font-size:0.83rem;">{{ c.description or 'Fresh campus food served daily' }}</p>
+                        </div>
+                        {% else %}
+                        <p style="color:var(--muted);">No canteens available right now.</p>
+                        {% endfor %}
+                    </div>
+                    <div>
+                        <div class="section-heading">🖨️ Print Shops</div>
+                        {% for p in print_shops %}
+                        <div class="vendor-card" style="margin-bottom:12px;" onclick="showSection('print'); selectPrintVendor({{ p.id }}, '{{ p.shop_name }}')">
+                            <div class="vendor-header">
+                                <div class="vendor-icon">🖨️</div>
+                                <div>
+                                    <div class="vendor-name">{{ p.shop_name }}</div>
+                                    <div class="vendor-type">Print Shop • {{ p.name }}</div>
+                                </div>
+                                <span class="badge badge-open" style="margin-left:auto;">🟢 Open</span>
+                            </div>
+                            <p style="color:var(--muted);font-size:0.83rem;">{{ p.description or 'Fast & affordable printing' }}</p>
+                        </div>
+                        {% else %}
+                        <p style="color:var(--muted);">No print shops available.</p>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+
+            <!-- CANTEEN -->
+            <div class="section" id="section-canteen">
+                <div class="section-heading">🍔 Order Food</div>
+                <div class="vendor-grid" id="canteen-vendor-grid">
+                    {% for c in canteens %}
+                    <div class="vendor-card" id="vendor-card-{{ c.id }}" onclick="selectVendor({{ c.id }}, '{{ c.shop_name }}', '{{ c.description or '' }}')">
+                        <div class="vendor-header">
+                            <div class="vendor-icon">🍽️</div>
+                            <div>
+                                <div class="vendor-name">{{ c.shop_name }}</div>
+                                <div class="vendor-type">Canteen</div>
+                            </div>
+                        </div>
+                        <p style="color:var(--muted);font-size:0.82rem;">{{ c.description or 'Tap to view menu' }}</p>
+                    </div>
+                    {% endfor %}
+                </div>
+
+                <div id="menu-section" class="hidden">
+                    <div style="display:grid;grid-template-columns:1fr 320px;gap:24px;align-items:start;">
+                        <div class="menu-panel">
+                            <div class="panel-title">📋 Menu — <span id="selected-canteen-name"></span></div>
+                            <div id="menu-items-grid" class="menu-items-grid"></div>
+                        </div>
+                        <div class="cart-panel">
+                            <div class="panel-title">🛒 Your Cart</div>
+                            <div class="cart-items" id="cart-items-list">
+                                <div class="empty-cart">Your cart is empty.<br>Add items from the menu!</div>
+                            </div>
+                            <div class="cart-total" id="cart-total-row" style="display:none;">
+                                <span>Total</span>
+                                <span class="cart-total-amt" id="cart-total-amt">₹0.00</span>
+                            </div>
+                            <button class="btn btn-success" id="checkout-btn" onclick="openPaymentModal('canteen')" disabled>
+                                💳 Pay & Order
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- PRINT -->
+            <div class="section" id="section-print">
+                <div class="section-heading">🖨️ Print Documents</div>
+                <div class="vendor-grid" id="print-vendor-grid">
+                    {% for p in print_shops %}
+                    <div class="vendor-card" id="pvendor-card-{{ p.id }}" onclick="selectPrintVendor({{ p.id }}, '{{ p.shop_name }}')">
+                        <div class="vendor-header">
+                            <div class="vendor-icon">🖨️</div>
+                            <div>
+                                <div class="vendor-name">{{ p.shop_name }}</div>
+                                <div class="vendor-type">Print Shop</div>
+                            </div>
+                        </div>
+                        <p style="color:var(--muted);font-size:0.82rem;">Tap to submit a print job</p>
+                    </div>
+                    {% endfor %}
+                </div>
+
+                <div id="print-form-section" class="hidden">
+                    <div class="print-layout">
+                        <div>
+                            <div class="menu-panel" style="margin-bottom:20px;">
+                                <div class="panel-title">📁 Upload Document</div>
+                                <div class="upload-zone" id="upload-zone" onclick="document.getElementById('file-input').click()">
+                                    <input type="file" id="file-input" accept=".pdf,.doc,.docx,.jpg,.jpeg,.png" onchange="onFileSelected(this)">
+                                    <div class="upload-icon">📄</div>
+                                    <p>Click to upload or drag & drop</p>
+                                    <p style="font-size:0.78rem;margin-top:6px;">PDF, DOC, DOCX, JPG, PNG</p>
+                                    <div class="file-chosen hidden" id="file-chosen-msg"></div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="print-options">
+                            <div class="panel-title">⚙️ Print Settings</div>
+                            <div class="option-group">
+                                <div class="option-label">Print Type</div>
+                                <div class="radio-group">
+                                    <div class="radio-card selected" id="rc-bw" onclick="selectPrintType('bw')">
+                                        <div class="rc-icon">🖤</div>
+                                        <div class="rc-name">B&W</div>
+                                        <div class="rc-price" id="bw-price-lbl">₹1.5/page</div>
+                                    </div>
+                                    <div class="radio-card" id="rc-color" onclick="selectPrintType('color')">
+                                        <div class="rc-icon">🌈</div>
+                                        <div class="rc-name">Color</div>
+                                        <div class="rc-price" id="color-price-lbl">₹6/page</div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="option-group">
+                                <div class="option-label">Number of Pages</div>
+                                <input type="number" id="page-count-input" min="1" value="1" oninput="updatePrintPrice()">
+                            </div>
+                            <div class="option-group">
+                                <div class="option-label">Copies</div>
+                                <input type="number" id="copies-input" min="1" value="1" oninput="updatePrintPrice()">
+                            </div>
+                            <div class="price-breakdown">
+                                <div class="price-row"><span class="label">Pages × Copies</span><span id="pb-pages">1 × 1 = 1</span></div>
+                                <div class="price-row"><span class="label">Price/page</span><span id="pb-pprice">₹1.5</span></div>
+                                <div class="price-row total"><span class="label">Total Amount</span><span id="pb-total">₹1.50</span></div>
+                            </div>
+                            <button class="btn btn-success" id="print-pay-btn" onclick="openPaymentModal('print')" style="width:100%;">
+                                💳 Pay & Send to Queue
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ORDERS -->
+            <div class="section" id="section-orders">
+                <div class="section-heading">📋 My Orders</div>
+                <div class="menu-panel">
+                    <div class="orders-table-wrap">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>#</th>
+                                    <th>Shop</th>
+                                    <th>Type</th>
+                                    <th>Amount</th>
+                                    <th>Status</th>
+                                    <th>Payment Ref</th>
+                                    <th>Date</th>
+                                </tr>
+                            </thead>
+                            <tbody id="orders-tbody">
+                                {% for o in orders %}
+                                <tr>
+                                    <td><strong>#{{ o.id }}</strong></td>
+                                    <td>{{ o.shop_name }}</td>
+                                    <td>{{ '🍔 Food' if o.order_type == 'canteen' else '🖨️ Print' }}</td>
+                                    <td>₹{{ "%.2f"|format(o.total_amount) }}</td>
+                                    <td><span class="badge badge-{{ o.status }}">{{ o.status.title() }}</span></td>
+                                    <td style="font-family:monospace;font-size:0.78rem;color:var(--muted);">{{ o.payment_ref or '—' }}</td>
+                                    <td style="color:var(--muted);font-size:0.8rem;">{{ o.created_at[:16] if o.created_at else '—' }}</td>
+                                </tr>
+                                {% else %}
+                                <tr><td colspan="7" style="text-align:center;color:var(--muted);padding:40px;">No orders yet. Start ordering!</td></tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- PAYMENT HISTORY SECTION -->
+            <div class="section" id="section-payments">
+                <div class="section-heading">&#128179; Payment Gateway Transactions</div>
+                <div class="menu-panel">
+                    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;">
+                        <p style="color:var(--muted);font-size:0.88rem;">All wallet top-up attempts via the payment gateway.</p>
+                        <button class="btn btn-primary" style="font-size:0.82rem;padding:9px 18px;" onclick="openTopup()">&#43; Add Money</button>
+                    </div>
+                    <div class="orders-table-wrap">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Transaction ID</th>
+                                    <th>Amount</th>
+                                    <th>Method</th>
+                                    <th>Status</th>
+                                    <th>Date</th>
+                                </tr>
+                            </thead>
+                            <tbody id="payment-history-tbody">
+                                <tr><td colspan="5" style="text-align:center;color:var(--muted);padding:40px;">Click to load transactions...</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- PAYMENT GATEWAY MODAL (CampusPay) -->
+    <div class="modal-overlay" id="payment-gateway-modal">
+        <div class="pg-modal">
+            <!-- Header -->
+            <div class="pg-header">
+                <button class="pg-close-btn" onclick="closePGModal()">&#10005;</button>
+                <div class="pg-logo">
+                    <div class="pg-logo-mark">&#128176;</div>
+                    <div>
+                        <div class="pg-logo-name">CampusPay</div>
+                        <div class="pg-logo-tag">Secure Test Gateway</div>
+                    </div>
+                </div>
+                <div class="pg-amount-display">
+                    <div class="pg-pay-label">Adding to Wallet</div>
+                    <div class="pg-pay-amount" id="pg-header-amount">&#8377;0.00</div>
+                </div>
+            </div>
+            <!-- Body -->
+            <div class="pg-body">
+                <!-- SCREEN: FORM -->
+                <div class="pg-screen" id="pg-screen-form" style="display:flex;flex-direction:column;align-items:stretch;min-height:unset;text-align:left;">
+                    <div class="pg-field" style="margin-bottom:10px;">
+                        <label>Amount (&#8377;)</label>
+                        <input type="number" id="pg-amount" min="1" max="5000" placeholder="Enter amount (max &#8377;5000)"
+                            oninput="document.getElementById('pg-header-amount').textContent='&#8377;'+(parseFloat(this.value)||0).toFixed(2)">
+                    </div>
+                    <div class="pg-amount-row">
+                        <button class="pg-quick-amt" onclick="setPGAmount(100)">&#8377;100</button>
+                        <button class="pg-quick-amt" onclick="setPGAmount(200)">&#8377;200</button>
+                        <button class="pg-quick-amt" onclick="setPGAmount(500)">&#8377;500</button>
+                        <button class="pg-quick-amt" onclick="setPGAmount(1000)">&#8377;1000</button>
+                    </div>
+                    <p style="font-size:0.7rem;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:8px;">Payment Method</p>
+                    <div class="pg-tabs">
+                        <button class="pg-tab active" id="pg-tab-card" onclick="selectPaymentMethod('card')">
+                            <span class="pg-tab-icon">&#128179;</span><span>Card</span>
+                        </button>
+                        <button class="pg-tab" id="pg-tab-upi" onclick="selectPaymentMethod('upi')">
+                            <span class="pg-tab-icon">&#128242;</span><span>UPI</span>
+                        </button>
+                        <button class="pg-tab" id="pg-tab-netbanking" onclick="selectPaymentMethod('netbanking')">
+                            <span class="pg-tab-icon">&#127968;</span><span>Net Banking</span>
+                        </button>
+                    </div>
+                    <input type="hidden" id="pg-selected-method" value="card">
+                    <!-- Card Panel -->
+                    <div class="pg-panel active" id="pg-panel-card">
+                        <div class="pg-field">
+                            <label>Card Number</label>
+                            <input type="text" id="pg-card-num" placeholder="1234 5678 9012 3456" maxlength="19"
+                                oninput="this.value=this.value.replace(/[^\d]/g,'').replace(/(\d{4})/g,'$1 ').trim()">
+                        </div>
+                        <div class="pg-field">
+                            <label>Cardholder Name</label>
+                            <input type="text" id="pg-card-name" placeholder="Name on card">
+                        </div>
+                        <div class="pg-two-col">
+                            <div class="pg-field">
+                                <label>Expiry (MM/YY)</label>
+                                <input type="text" id="pg-card-expiry" placeholder="MM/YY" maxlength="5"
+                                    oninput="if(this.value.length==2&amp;&amp;!this.value.includes('/'))this.value+='/';"></div>
+                            <div class="pg-field">
+                                <label>CVV</label>
+                                <input type="password" id="pg-card-cvv" placeholder="&bull;&bull;&bull;" maxlength="4">
+                            </div>
+                        </div>
+                        <p style="font-size:0.72rem;color:var(--muted);margin-top:2px;">&#128274; Test: <strong>4111 1111 1111 1111</strong> &bull; 12/29 &bull; 123</p>
+                    </div>
+                    <!-- UPI Panel -->
+                    <div class="pg-panel" id="pg-panel-upi">
+                        <div class="pg-field">
+                            <label>UPI ID</label>
+                            <input type="text" id="pg-upi-id" placeholder="yourname@upi">
+                        </div>
+                        <p style="font-size:0.72rem;color:var(--muted);margin-top:4px;">&#9432; Use any format e.g. <strong>test@upi</strong></p>
+                    </div>
+                    <!-- Net Banking Panel -->
+                    <div class="pg-panel" id="pg-panel-netbanking">
+                        <div class="pg-field">
+                            <label>Select Bank</label>
+                            <select id="pg-bank-select" style="width:100%;background:var(--surface);border:1.5px solid var(--border);border-radius:10px;padding:11px 14px;color:var(--text);font-size:0.92rem;font-family:inherit;outline:none;">
+                                <option>State Bank of India</option>
+                                <option>HDFC Bank</option>
+                                <option>ICICI Bank</option>
+                                <option>Axis Bank</option>
+                                <option>Kotak Mahindra Bank</option>
+                                <option>Punjab National Bank</option>
+                            </select>
+                        </div>
+                        <p style="font-size:0.72rem;color:var(--muted);">&#9432; Bank portal redirect simulated.</p>
+                    </div>
+                    <div class="pg-test-badge" style="margin-top:14px;">
+                        <strong>&#129514; Test Mode Active</strong> &mdash; No real money is charged. All transactions are simulated for demo purposes.
+                    </div>
+                    <div style="display:flex;gap:10px;margin-top:4px;">
+                        <button class="btn" style="flex:1;background:var(--surface);border:1px solid var(--border);color:var(--muted);" onclick="closePGModal()">Cancel</button>
+                        <button class="btn" style="flex:1;background:rgba(239,68,68,0.15);border:1px solid rgba(239,68,68,0.3);color:#FCA5A5;font-size:0.82rem;" onclick="submitPayment(true)" title="Simulate failure">&#128683; Fail Test</button>
+                        <button class="btn btn-primary" style="flex:2;" onclick="submitPayment(false)">&#128176; Pay Now</button>
+                    </div>
+                </div>
+                <!-- SCREEN: PROCESSING -->
+                <div class="pg-screen" id="pg-screen-processing">
+                    <div class="pg-spinner-ring"></div>
+                    <div class="pg-proc-title">Processing Payment</div>
+                    <div class="pg-proc-sub">Contacting gateway<span class="pg-proc-dots"></span></div>
+                    <p style="color:var(--muted);font-size:0.78rem;margin-top:12px;">Please do not close this window.</p>
+                </div>
+                <!-- SCREEN: SUCCESS -->
+                <div class="pg-screen" id="pg-screen-success">
+                    <div class="pg-success-icon">&#10003;</div>
+                    <div class="pg-success-amount" id="pg-success-amount">&#8377;0</div>
+                    <div class="pg-success-title">Payment Successful!</div>
+                    <div style="color:var(--muted);font-size:0.85rem;margin-bottom:8px;">Credited via <strong id="pg-success-method"></strong></div>
+                    <div class="pg-txn-badge">Txn: <span id="pg-success-txn"></span></div>
+                    <button class="btn btn-primary" style="width:100%;" onclick="closePGModal()">Done</button>
+                </div>
+                <!-- SCREEN: FAILED -->
+                <div class="pg-screen" id="pg-screen-failed">
+                    <div class="pg-fail-icon">&#10007;</div>
+                    <div class="pg-fail-title">Payment Failed</div>
+                    <div class="pg-fail-reason" id="pg-fail-reason">Transaction declined.</div>
+                    <div class="pg-txn-badge">Txn: <span id="pg-fail-txn"></span></div>
+                    <div style="display:flex;gap:10px;width:100%;">
+                        <button class="btn" style="flex:1;background:var(--surface);border:1px solid var(--border);color:var(--muted);" onclick="closePGModal()">Close</button>
+                        <button class="btn btn-primary" style="flex:2;" onclick="showPGScreen('form')">&#8635; Try Again</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ORDER CONFIRM MODAL (wallet deduct for food/print) -->
+    <div class="modal-overlay" id="payment-modal">
+        <div class="modal">
+            <div class="modal-icon" id="modal-icon">&#128179;</div>
+            <h2 id="modal-title">Confirm Payment</h2>
+            <p id="modal-subtitle">Review your order and confirm payment from your campus wallet.</p>
+            <div class="receipt-box" id="receipt-box"></div>
+            <div style="display:flex;gap:12px;">
+                <button class="btn" style="flex:1;background:var(--surface);border:1px solid var(--border);color:var(--muted);" onclick="closeModal()">Cancel</button>
+                <button class="btn btn-primary" id="confirm-pay-btn" style="flex:2;" onclick="confirmPayment()">
+                    <span>Confirm &amp; Pay</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+
+
+    <!-- PRINT TICKET MODAL -->
+    <div class="modal-overlay" id="ticket-modal" style="z-index:10001;">
+        <div class="modal" style="max-width:420px;text-align:center;padding:0;overflow:hidden;border-radius:24px;">
+            <!-- Ticket Header -->
+            <div style="background:linear-gradient(135deg,#6C63FF,#8B5CF6,#F97316);padding:28px 28px 20px;position:relative;">
+                <div style="font-size:2.5rem;margin-bottom:8px;">🎫</div>
+                <div style="color:white;font-weight:900;font-size:1.3rem;letter-spacing:-0.02em;">Print Ticket Issued!</div>
+                <div style="color:rgba(255,255,255,0.75);font-size:0.82rem;margin-top:4px;">Show this ticket at the print counter</div>
+            </div>
+            <!-- Ticket Number -->
+            <div style="padding:28px 28px 0;background:var(--surface);">
+                <div style="background:var(--bg);border:2px dashed rgba(108,99,255,0.4);border-radius:16px;padding:20px;margin-bottom:20px;position:relative;">
+                    <div style="font-size:0.7rem;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:0.12em;margin-bottom:10px;">Your Ticket Number</div>
+                    <div id="ticket-number-display" style="font-family:'Courier New',monospace;font-size:1.75rem;font-weight:900;letter-spacing:0.06em;color:#A5B4FC;word-break:break-all;">—</div>
+                    <button onclick="copyTicket()" style="position:absolute;top:10px;right:10px;background:rgba(108,99,255,0.12);border:1px solid rgba(108,99,255,0.25);color:#A5B4FC;border-radius:8px;padding:6px 10px;font-size:0.75rem;font-weight:600;cursor:pointer;font-family:inherit;transition:all 0.2s;" onmouseover="this.style.background='rgba(108,99,255,0.22)'" onmouseout="this.style.background='rgba(108,99,255,0.12)'">📋 Copy</button>
+                </div>
+                <!-- Job Details -->
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:20px;">
+                    <div style="background:var(--bg);border:1px solid var(--border);border-radius:12px;padding:12px;text-align:center;">
+                        <div style="font-size:1.2rem;margin-bottom:4px;">📄</div>
+                        <div id="ticket-pages" style="font-weight:800;font-size:1.1rem;">—</div>
+                        <div style="color:var(--muted);font-size:0.72rem;margin-top:2px;">Total Pages</div>
+                    </div>
+                    <div style="background:var(--bg);border:1px solid var(--border);border-radius:12px;padding:12px;text-align:center;">
+                        <div style="font-size:1.2rem;margin-bottom:4px;">💳</div>
+                        <div id="ticket-amount" style="font-weight:800;font-size:1.1rem;color:#34D399;">—</div>
+                        <div style="color:var(--muted);font-size:0.72rem;margin-top:2px;">Amount Paid</div>
+                    </div>
+                </div>
+                <div style="background:rgba(16,185,129,0.08);border:1px solid rgba(16,185,129,0.2);border-radius:10px;padding:10px 14px;margin-bottom:16px;display:flex;align-items:center;gap:10px;text-align:left;">
+                    <span style="font-size:1.2rem;">✅</span>
+                    <div>
+                        <div style="font-weight:700;font-size:0.82rem;color:#34D399;">Payment Confirmed</div>
+                        <div id="ticket-ref" style="font-family:monospace;font-size:0.72rem;color:var(--muted);margin-top:2px;">—</div>
+                    </div>
+                </div>
+                <div style="background:rgba(245,158,11,0.08);border:1px solid rgba(245,158,11,0.2);border-radius:10px;padding:10px 14px;margin-bottom:24px;font-size:0.78rem;color:#FCD34D;text-align:left;">
+                    ⚠️ <strong>Screenshot or note down your ticket number.</strong> Share it with the printer vendor to collect your prints.
+                </div>
+                <button onclick="closeTicketModal()" style="width:100%;padding:14px;background:linear-gradient(135deg,#6C63FF,#5850EC);border:none;border-radius:14px;color:white;font-weight:700;font-size:0.95rem;cursor:pointer;font-family:inherit;margin-bottom:24px;transition:opacity 0.2s;" onmouseover="this.style.opacity='0.9'" onmouseout="this.style.opacity='1'">✓ Got It!</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- TOAST CONTAINER -->
+
+    <div class="toast-container" id="toast-container"></div>
+
+    <script>
+        // State
+        let cart = {};
+        let menuData = {};
+        let selectedCanteenId = null;
+        let selectedPrintVendorId = null;
+        let printPricing = { bw: 1.5, color: 6.0 };
+        let selectedPrintType = 'bw';
+        let pendingOrderType = null;
+
+        // Sections
+        function showSection(name) {
+            document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+            document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+            document.getElementById('section-' + name).classList.add('active');
+            document.getElementById('nav-' + name).classList.add('active');
+            const titles = { overview: 'Overview', canteen: 'Order Food', print: 'Print Documents', orders: 'My Orders', payments: 'Payment History' };
+            document.getElementById('page-title').textContent = titles[name];
+        }
+
+        // Payment Gateway
+        let currentGatewayTxnId = null;
+
+        function openTopup() {
+            document.getElementById('pg-amount').value = '';
+            document.getElementById('pg-upi-id').value = '';
+            document.getElementById('pg-card-num').value = '';
+            document.getElementById('pg-card-expiry').value = '';
+            document.getElementById('pg-card-cvv').value = '';
+            document.getElementById('pg-card-name').value = '';
+            selectPaymentMethod('card');
+            showPGScreen('form');
+            document.getElementById('payment-gateway-modal').classList.add('show');
+        }
+        function closePGModal() {
+            document.getElementById('payment-gateway-modal').classList.remove('show');
+            currentGatewayTxnId = null;
+        }
+        function selectPaymentMethod(method) {
+            document.querySelectorAll('.pg-tab').forEach(t => t.classList.remove('active'));
+            document.getElementById('pg-tab-' + method).classList.add('active');
+            document.querySelectorAll('.pg-panel').forEach(p => p.classList.remove('active'));
+            document.getElementById('pg-panel-' + method).classList.add('active');
+            document.getElementById('pg-selected-method').value = method;
+        }
+        function showPGScreen(name) {
+            document.querySelectorAll('.pg-screen').forEach(s => s.style.display = 'none');
+            document.getElementById('pg-screen-' + name).style.display = 'flex';
+        }
+        function setPGAmount(amt) { document.getElementById('pg-amount').value = amt; }
+
+        async function submitPayment(simulateFail = false) {
+            const amount = parseFloat(document.getElementById('pg-amount').value);
+            const method = document.getElementById('pg-selected-method').value;
+            if (!amount || amount <= 0) { toast('Enter a valid amount', 'error'); return; }
+            if (amount > 5000) { toast('Maximum ₹5000 per transaction', 'error'); return; }
+            if (method === 'upi') {
+                const upi = document.getElementById('pg-upi-id').value.trim();
+                if (!upi || !upi.includes('@')) { toast('Enter a valid UPI ID (e.g. name@upi)', 'error'); return; }
+            } else if (method === 'card') {
+                const num = document.getElementById('pg-card-num').value.replace(/\s/g,'');
+                const exp = document.getElementById('pg-card-expiry').value.trim();
+                const cvv = document.getElementById('pg-card-cvv').value.trim();
+                const name = document.getElementById('pg-card-name').value.trim();
+                if (num.length < 16) { toast('Enter a valid 16-digit card number', 'error'); return; }
+                if (!exp.match(/^\d{2}\/\d{2}$/)) { toast('Expiry format: MM/YY', 'error'); return; }
+                if (cvv.length < 3) { toast('Enter a valid CVV', 'error'); return; }
+                if (!name) { toast('Enter cardholder name', 'error'); return; }
+            }
+
+            showPGScreen('processing');
+
+            try {
+                // Step 1: Initiate
+                const initRes = await fetch('/api/payment/initiate', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ amount, method })
+                });
+                const initData = await initRes.json();
+                if (!initData.success) { showPGScreen('form'); toast('❌ ' + initData.message, 'error'); return; }
+                currentGatewayTxnId = initData.gateway_txn_id;
+
+                // Simulate processing delay (1.5s)
+                await new Promise(r => setTimeout(r, 1800));
+
+                // Step 2: Verify
+                const verifyRes = await fetch('/api/payment/verify', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ gateway_txn_id: currentGatewayTxnId, simulate_fail: simulateFail })
+                });
+                const verifyData = await verifyRes.json();
+
+                if (verifyData.success) {
+                    document.getElementById('pg-success-amount').textContent = '₹' + verifyData.amount.toFixed(2);
+                    document.getElementById('pg-success-txn').textContent = currentGatewayTxnId;
+                    document.getElementById('pg-success-method').textContent = verifyData.method.charAt(0).toUpperCase() + verifyData.method.slice(1);
+                    showPGScreen('success');
+                    const formatted = '₹' + verifyData.balance.toFixed(2);
+                    document.getElementById('sidebar-balance').textContent = formatted;
+                    document.getElementById('topbar-balance').textContent = formatted;
+                    document.getElementById('balance-stat').textContent = formatted;
+                } else {
+                    document.getElementById('pg-fail-txn').textContent = currentGatewayTxnId || 'N/A';
+                    document.getElementById('pg-fail-reason').textContent = verifyData.message;
+                    showPGScreen('failed');
+                }
+            } catch(e) {
+                showPGScreen('form');
+                toast('❌ Network error', 'error');
+            }
+        }
+
+        async function loadPaymentHistory() {
+            const tbody = document.getElementById('payment-history-tbody');
+            tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;color:var(--muted);padding:20px;">Loading...</td></tr>';
+            try {
+                const res = await fetch('/api/payment/history');
+                const txns = await res.json();
+                if (!txns.length) {
+                    tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;color:var(--muted);padding:40px;">No payment transactions yet.</td></tr>';
+                    return;
+                }
+                tbody.innerHTML = txns.map(t => `
+                    <tr>
+                        <td style="font-family:monospace;font-size:0.78rem;color:var(--muted)">${t.gateway_txn_id}</td>
+                        <td>₹${parseFloat(t.amount).toFixed(2)}</td>
+                        <td>${t.method.charAt(0).toUpperCase() + t.method.slice(1)}</td>
+                        <td><span class="badge badge-${t.status === 'success' ? 'paid' : t.status === 'failed' ? 'rejected' : 'pending'}">${t.status.charAt(0).toUpperCase() + t.status.slice(1)}</span></td>
+                        <td style="color:var(--muted);font-size:0.8rem;">${t.created_at ? t.created_at.slice(0,16) : '—'}</td>
+                    </tr>
+                `).join('');
+            } catch(e) {
+                tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;color:var(--danger);">Failed to load history.</td></tr>';
+            }
+        }
+
+
+
+        // Canteen
+        async function selectVendor(id, name, desc) {
+            selectedCanteenId = id;
+            cart = {};
+            document.querySelectorAll('.vendor-card').forEach(c => c.classList.remove('selected'));
+            const card = document.getElementById('vendor-card-' + id);
+            if (card) card.classList.add('selected');
+
+            const res = await fetch('/api/menu/' + id);
+            const data = await res.json();
+            menuData = {};
+            data.items.forEach(i => menuData[i.id] = i);
+
+            document.getElementById('selected-canteen-name').textContent = name;
+            renderMenu(data.items);
+            renderCart();
+            document.getElementById('menu-section').classList.remove('hidden');
+        }
+
+        function renderMenu(items) {
+            const grid = document.getElementById('menu-items-grid');
+            if (!items.length) { grid.innerHTML = '<p style="color:var(--muted);">No items on menu yet.</p>'; return; }
+            grid.innerHTML = items.map(item => {
+                const hasPhoto = item.image_url && item.image_url.trim();
+                const mediaHtml = hasPhoto
+                    ? `<img src="${item.image_url}" class="item-photo" alt="${item.name}" onerror="this.style.display='none';this.nextElementSibling.style.display='block'">
+                       <div class="item-emoji-wrap" style="display:none;"><span class="item-emoji">${item.image_emoji || '🍽️'}</span></div>`
+                    : `<div class="item-emoji-wrap"><span class="item-emoji">${item.image_emoji || '🍽️'}</span></div>`;
+                return `
+                <div class="menu-item-card ${cart[item.id] ? 'in-cart' : ''}" id="mcard-${item.id}" onclick="addToCart(${item.id})">
+                    ${cart[item.id] ? `<div class="cart-qty">${cart[item.id]}</div>` : ''}
+                    ${mediaHtml}
+                    <div class="menu-item-body">
+                        <div class="item-name">${item.name}</div>
+                        <div class="item-desc">${item.description || ''}</div>
+                        <div class="item-footer">
+                            <span class="item-price">₹${item.price.toFixed(2)}</span>
+                            <button class="add-btn" onclick="addToCart(${item.id});event.stopPropagation()">+</button>
+                        </div>
+                    </div>
+                </div>`;
+            }).join('');
+        }
+
+        function addToCart(id) {
+            if (!menuData[id] || !menuData[id].is_available) return;
+            cart[id] = (cart[id] || 0) + 1;
+            const grid = document.getElementById('menu-items-grid');
+            // update card
+            const card = document.getElementById('mcard-' + id);
+            if (card) {
+                card.classList.add('in-cart');
+                const badge = card.querySelector('.cart-qty');
+                if (badge) badge.textContent = cart[id];
+                else card.insertAdjacentHTML('afterbegin', `<div class="cart-qty">${cart[id]}</div>`);
+            }
+            renderCart();
+        }
+
+        function changeQty(id, delta) {
+            cart[id] = (cart[id] || 0) + delta;
+            if (cart[id] <= 0) {
+                delete cart[id];
+                const card = document.getElementById('mcard-' + id);
+                if (card) { card.classList.remove('in-cart'); const b = card.querySelector('.cart-qty'); if (b) b.remove(); }
+            } else {
+                const card = document.getElementById('mcard-' + id);
+                if (card) { const b = card.querySelector('.cart-qty'); if (b) b.textContent = cart[id]; }
+            }
+            renderCart();
+        }
+
+        function renderCart() {
+            const list = document.getElementById('cart-items-list');
+            const totalRow = document.getElementById('cart-total-row');
+            const checkoutBtn = document.getElementById('checkout-btn');
+            const ids = Object.keys(cart).filter(id => cart[id] > 0);
+
+            if (!ids.length) {
+                list.innerHTML = '<div class="empty-cart">Your cart is empty.<br>Add items from the menu!</div>';
+                totalRow.style.display = 'none';
+                checkoutBtn.disabled = true;
+                return;
+            }
+            let total = 0;
+            list.innerHTML = ids.map(id => {
+                const item = menuData[id];
+                const subtotal = item.price * cart[id];
+                total += subtotal;
+                return `
+                    <div class="cart-item">
+                        <span>${item.image_emoji || '🍽️'}</span>
+                        <span class="cart-item-name">${item.name}</span>
+                        <div class="qty-controls">
+                            <button class="qty-btn" onclick="changeQty(${id}, -1)">−</button>
+                            <span class="qty-num">${cart[id]}</span>
+                            <button class="qty-btn" onclick="changeQty(${id}, 1)">+</button>
+                        </div>
+                        <span class="cart-item-price">₹${subtotal.toFixed(2)}</span>
+                    </div>
+                `;
+            }).join('');
+            document.getElementById('cart-total-amt').textContent = '₹' + total.toFixed(2);
+            totalRow.style.display = 'flex';
+            checkoutBtn.disabled = false;
+        }
+
+        function getCartTotal() {
+            return Object.keys(cart).reduce((t, id) => t + (menuData[id]?.price || 0) * cart[id], 0);
+        }
+
+        // Print
+        async function selectPrintVendor(id, name) {
+            selectedPrintVendorId = id;
+            document.querySelectorAll('#print-vendor-grid .vendor-card').forEach(c => c.classList.remove('selected'));
+            const card = document.getElementById('pvendor-card-' + id);
+            if (card) card.classList.add('selected');
+
+            const res = await fetch('/api/menu/' + id);
+            const data = await res.json();
+            if (data.pricing) {
+                printPricing.bw = data.pricing.bw_price_per_page;
+                printPricing.color = data.pricing.color_price_per_page;
+                document.getElementById('bw-price-lbl').textContent = '₹' + printPricing.bw + '/page';
+                document.getElementById('color-price-lbl').textContent = '₹' + printPricing.color + '/page';
+            }
+            updatePrintPrice();
+            document.getElementById('print-form-section').classList.remove('hidden');
+        }
+
+        function onFileSelected(input) {
+            if (input.files.length > 0) {
+                const msg = document.getElementById('file-chosen-msg');
+                msg.textContent = '✅ ' + input.files[0].name;
+                msg.classList.remove('hidden');
+            }
+        }
+
+        function selectPrintType(type) {
+            selectedPrintType = type;
+            document.getElementById('rc-bw').classList.toggle('selected', type === 'bw');
+            document.getElementById('rc-color').classList.toggle('selected', type === 'color');
+            updatePrintPrice();
+        }
+
+        function updatePrintPrice() {
+            const pages = parseInt(document.getElementById('page-count-input').value) || 1;
+            const copies = parseInt(document.getElementById('copies-input').value) || 1;
+            const pricePerPage = selectedPrintType === 'color' ? printPricing.color : printPricing.bw;
+            const total = pages * copies * pricePerPage;
+            document.getElementById('pb-pages').textContent = `${pages} × ${copies} = ${pages * copies}`;
+            document.getElementById('pb-pprice').textContent = '₹' + pricePerPage;
+            document.getElementById('pb-total').textContent = '₹' + total.toFixed(2);
+        }
+
+        // Payment Modal
+        function openPaymentModal(type) {
+            pendingOrderType = type;
+            const modal = document.getElementById('payment-modal');
+            const receipt = document.getElementById('receipt-box');
+
+            if (type === 'canteen') {
+                const items = Object.keys(cart).filter(id => cart[id] > 0);
+                let rows = items.map(id => {
+                    const item = menuData[id];
+                    return `<div class="receipt-row"><span class="label">${item.image_emoji} ${item.name} × ${cart[id]}</span><span>₹${(item.price * cart[id]).toFixed(2)}</span></div>`;
+                }).join('');
+                rows += `<div class="receipt-row"><span class="label">Total</span><span>₹${getCartTotal().toFixed(2)}</span></div>`;
+                receipt.innerHTML = rows;
+                document.getElementById('modal-icon').textContent = '🍔';
+                document.getElementById('modal-title').textContent = 'Confirm Food Order';
+                document.getElementById('modal-subtitle').textContent = 'Payment will be deducted from your campus wallet.';
+            } else {
+                const pages = parseInt(document.getElementById('page-count-input').value) || 1;
+                const copies = parseInt(document.getElementById('copies-input').value) || 1;
+                const pricePerPage = selectedPrintType === 'color' ? printPricing.color : printPricing.bw;
+                const total = pages * copies * pricePerPage;
+                const file = document.getElementById('file-input').files[0];
+                if (!file) { toast('Please upload a file first!', 'error'); return; }
+                receipt.innerHTML = `
+                    <div class="receipt-row"><span class="label">File</span><span>${file.name}</span></div>
+                    <div class="receipt-row"><span class="label">Print Type</span><span>${selectedPrintType === 'bw' ? '🖤 Black & White' : '🌈 Color'}</span></div>
+                    <div class="receipt-row"><span class="label">Pages × Copies</span><span>${pages} × ${copies} = ${pages * copies} pages</span></div>
+                    <div class="receipt-row"><span class="label">Price/page</span><span>₹${pricePerPage}</span></div>
+                    <div class="receipt-row"><span class="label">Total</span><span>₹${total.toFixed(2)}</span></div>
+                `;
+                document.getElementById('modal-icon').textContent = '🖨️';
+                document.getElementById('modal-title').textContent = 'Confirm Print Job';
+                document.getElementById('modal-subtitle').textContent = 'File will be queued for printing after payment.';
+            }
+            modal.classList.add('show');
+        }
+
+        function closeModal() { document.getElementById('payment-modal').classList.remove('show'); }
+
+        async function confirmPayment() {
+            const btn = document.getElementById('confirm-pay-btn');
+            btn.innerHTML = '<div class="spinner"></div>';
+            btn.disabled = true;
+
+            try {
+                if (pendingOrderType === 'canteen') {
+                    const items = Object.keys(cart).filter(id => cart[id] > 0).map(id => ({ menu_item_id: parseInt(id), quantity: cart[id] }));
+                    const res = await fetch('/api/place_canteen_order', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ vendor_id: selectedCanteenId, items })
+                    });
+                    const data = await res.json();
+                    if (data.success) {
+                        closeModal();
+                        toast(`✅ Order #${data.order_id} placed! Ref: ${data.payment_ref}`, 'success');
+                        cart = {};
+                        renderCart();
+                        renderMenu(Object.values(menuData));
+                        updateBalance();
+                    } else { toast('❌ ' + data.message, 'error'); }
+                } else {
+                    const file = document.getElementById('file-input').files[0];
+                    const formData = new FormData();
+                    formData.append('vendor_id', selectedPrintVendorId);
+                    formData.append('page_count', document.getElementById('page-count-input').value);
+                    formData.append('copies', document.getElementById('copies-input').value);
+                    formData.append('print_type', selectedPrintType);
+                    formData.append('file', file);
+                    const res = await fetch('/api/place_print_order', { method: 'POST', body: formData });
+                    const data = await res.json();
+                    if (data.success) {
+                        closeModal();
+                        showTicketModal(data);
+                        document.getElementById('file-input').value = '';
+                        document.getElementById('file-chosen-msg').classList.add('hidden');
+                        updateBalance();
+                    } else { toast('❌ ' + data.message, 'error'); }
+                }
+            } catch(e) { toast('❌ Network error', 'error'); }
+            btn.innerHTML = '<span>Confirm & Pay</span>';
+            btn.disabled = false;
+        }
+
+        async function updateBalance() {
+            const res = await fetch('/api/student/balance');
+            const data = await res.json();
+            const formatted = '₹' + data.balance.toFixed(2);
+            document.getElementById('sidebar-balance').textContent = formatted;
+            document.getElementById('topbar-balance').textContent = formatted;
+            document.getElementById('balance-stat').textContent = formatted;
+        }
+
+        function showTicketModal(data) {
+            document.getElementById('ticket-number-display').textContent = data.ticket_number || '—';
+            document.getElementById('ticket-pages').textContent = data.total_pages || '—';
+            document.getElementById('ticket-amount').textContent = '₹' + (data.total || 0).toFixed(2);
+            document.getElementById('ticket-ref').textContent = data.payment_ref || '—';
+            document.getElementById('ticket-modal').classList.add('show');
+        }
+        function closeTicketModal() {
+            document.getElementById('ticket-modal').classList.remove('show');
+        }
+        function copyTicket() {
+            const num = document.getElementById('ticket-number-display').textContent;
+            navigator.clipboard.writeText(num).then(() => toast('📋 Ticket number copied!', 'success'));
+        }
+
+        function toast(msg, type = 'success') {
+            const tc = document.getElementById('toast-container');
+            const el = document.createElement('div');
+            el.className = 'toast ' + type;
+            el.innerHTML = (type === 'success' ? '✅' : '❌') + ' ' + msg;
+            tc.appendChild(el);
+            setTimeout(() => el.remove(), 4000);
+        }
+
+        // Drag & drop
+        const zone = document.getElementById('upload-zone');
+        zone.addEventListener('dragover', e => { e.preventDefault(); zone.classList.add('drag-over'); });
+        zone.addEventListener('dragleave', () => zone.classList.remove('drag-over'));
+        zone.addEventListener('drop', e => {
+            e.preventDefault(); zone.classList.remove('drag-over');
+            const file = e.dataTransfer.files[0];
+            if (file) {
+                const input = document.getElementById('file-input');
+                const dt = new DataTransfer(); dt.items.add(file);
+                input.files = dt.files; onFileSelected(input);
+            }
+        });
+    </script>
+</body>
+</html>

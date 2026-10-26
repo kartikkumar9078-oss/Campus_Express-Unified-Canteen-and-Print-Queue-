@@ -1,0 +1,519 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Canteen Dashboard — Campus Express</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <style>
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+        :root {
+            --primary: #6C63FF; --primary-dark: #5850EC; --accent: #F97316;
+            --success: #10B981; --danger: #EF4444; --warning: #F59E0B;
+            --bg: #0A0A0F; --surface: #13131C; --surface2: #1C1C2E;
+            --border: rgba(255,255,255,0.08); --text: #F1F1F5; --muted: #8888AA;
+            --glass: rgba(255,255,255,0.04);
+        }
+        body { font-family: 'Inter', sans-serif; background: var(--bg); color: var(--text); display: flex; min-height: 100vh; }
+        .sidebar { width: 260px; flex-shrink: 0; background: var(--surface); border-right: 1px solid var(--border); display: flex; flex-direction: column; position: sticky; top: 0; height: 100vh; overflow-y: auto; }
+        .sidebar-logo { padding: 24px 24px 20px; border-bottom: 1px solid var(--border); }
+        .logo-mark { display: flex; align-items: center; gap: 10px; font-weight: 800; font-size: 1.1rem; }
+        .logo-text { background: linear-gradient(135deg, #6C63FF, #F97316); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        .user-info { padding: 20px 24px; border-bottom: 1px solid var(--border); }
+        .user-avatar { width: 44px; height: 44px; background: linear-gradient(135deg, #F97316, #EC4899); border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 1.3rem; font-weight: 700; margin-bottom: 10px; }
+        .user-name { font-weight: 700; font-size: 0.95rem; }
+        .user-role { color: var(--muted); font-size: 0.78rem; }
+        .shop-badge { background: rgba(249,115,22,0.12); border: 1px solid rgba(249,115,22,0.25); padding: 6px 10px; border-radius: 8px; margin-top: 8px; font-size: 0.8rem; color: #FCD34D; font-weight: 600; }
+        .nav-section { padding: 20px 16px 0; }
+        .nav-label { font-size: 0.7rem; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: 0.1em; padding: 0 8px; margin-bottom: 8px; }
+        .nav-item { display: flex; align-items: center; gap: 12px; padding: 11px 12px; border-radius: 10px; cursor: pointer; color: var(--muted); font-size: 0.88rem; font-weight: 500; transition: all 0.2s; border: none; background: transparent; width: 100%; text-align: left; }
+        .nav-item:hover { background: var(--glass); color: var(--text); }
+        .nav-item.active { background: rgba(249,115,22,0.12); color: #FCD34D; }
+        .nav-icon { font-size: 1.1rem; width: 20px; text-align: center; }
+        .sidebar-footer { margin-top: auto; padding: 20px 24px; border-top: 1px solid var(--border); }
+        .btn-logout { display: flex; align-items: center; gap: 8px; color: var(--muted); font-size: 0.85rem; cursor: pointer; text-decoration: none; transition: color 0.2s; }
+        .btn-logout:hover { color: var(--danger); }
+
+        .main { flex: 1; overflow-y: auto; }
+        .topbar { padding: 20px 32px; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; background: rgba(10,10,15,0.8); backdrop-filter: blur(20px); z-index: 10; }
+        .topbar h1 { font-size: 1.3rem; font-weight: 800; }
+        .content { padding: 32px; }
+        .section { display: none; }
+        .section.active { display: block; }
+
+        .toggle-btn { display: flex; align-items: center; gap: 10px; padding: 10px 20px; border-radius: 100px; border: none; cursor: pointer; font-weight: 700; font-size: 0.88rem; font-family: inherit; transition: all 0.2s; }
+        .toggle-open { background: rgba(16,185,129,0.15); border: 1px solid rgba(16,185,129,0.3); color: #34D399; }
+        .toggle-closed { background: rgba(239,68,68,0.15); border: 1px solid rgba(239,68,68,0.3); color: #FCA5A5; }
+
+        .grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-bottom: 28px; }
+        .stat-card { background: var(--surface); border: 1px solid var(--border); border-radius: 16px; padding: 22px; }
+        .stat-icon { font-size: 2rem; margin-bottom: 12px; }
+        .stat-val { font-size: 1.8rem; font-weight: 800; }
+        .stat-lbl { color: var(--muted); font-size: 0.82rem; margin-top: 4px; }
+
+        .panel { background: var(--surface); border: 1px solid var(--border); border-radius: 20px; padding: 28px; margin-bottom: 24px; }
+        .panel-title { font-size: 1.05rem; font-weight: 800; margin-bottom: 20px; display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+
+        /* MENU ITEMS */
+        .menu-table-wrap { overflow-x: auto; }
+        table { width: 100%; border-collapse: collapse; }
+        th { text-align: left; font-size: 0.72rem; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: 0.08em; padding: 12px 16px; border-bottom: 1px solid var(--border); }
+        td { padding: 14px 16px; border-bottom: 1px solid var(--border); font-size: 0.88rem; vertical-align: middle; }
+        tr:hover td { background: var(--glass); }
+        tr:last-child td { border-bottom: none; }
+
+        .badge { display: inline-flex; align-items: center; gap: 4px; padding: 4px 10px; border-radius: 100px; font-size: 0.72rem; font-weight: 600; }
+        .badge-open { background: rgba(16,185,129,0.15); color: #34D399; border: 1px solid rgba(16,185,129,0.25); }
+        .badge-pending { background: rgba(245,158,11,0.15); color: #FCD34D; }
+        .badge-paid { background: rgba(108,99,255,0.15); color: #A5B4FC; }
+        .badge-accepted { background: rgba(16,185,129,0.15); color: #34D399; }
+        .badge-completed { background: rgba(16,185,129,0.15); color: #34D399; }
+        .badge-rejected { background: rgba(239,68,68,0.15); color: #FCA5A5; }
+        .badge-off { background: rgba(239,68,68,0.15); color: #FCA5A5; border: 1px solid rgba(239,68,68,0.25); }
+
+        .btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; padding: 8px 18px; border-radius: 10px; font-weight: 600; font-size: 0.82rem; cursor: pointer; border: none; transition: all 0.2s; font-family: inherit; }
+        .btn-primary { background: linear-gradient(135deg, var(--primary), var(--primary-dark)); color: white; }
+        .btn-primary:hover { transform: translateY(-1px); box-shadow: 0 6px 20px rgba(108,99,255,0.4); }
+        .btn-success { background: rgba(16,185,129,0.15); color: #34D399; border: 1px solid rgba(16,185,129,0.3); }
+        .btn-success:hover { background: rgba(16,185,129,0.25); }
+        .btn-danger { background: rgba(239,68,68,0.12); color: #FCA5A5; border: 1px solid rgba(239,68,68,0.25); }
+        .btn-danger:hover { background: rgba(239,68,68,0.22); }
+        .btn-warning { background: rgba(245,158,11,0.12); color: #FCD34D; border: 1px solid rgba(245,158,11,0.25); }
+        .btn-sm { padding: 6px 12px; font-size: 0.78rem; border-radius: 8px; }
+
+        /* ADD ITEM FORM */
+        .add-form { background: var(--surface2); border: 1px solid var(--border); border-radius: 16px; padding: 24px; margin-bottom: 24px; }
+        .form-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 14px; align-items: end; }
+        .form-group { display: flex; flex-direction: column; gap: 6px; }
+        label { font-size: 0.75rem; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: 0.05em; }
+        input, select, textarea { background: var(--bg); border: 1px solid var(--border); border-radius: 10px; padding: 10px 14px; color: var(--text); font-size: 0.9rem; font-family: inherit; outline: none; transition: all 0.2s; width: 100%; }
+        input:focus, select:focus { border-color: var(--primary); }
+
+        /* PHOTO UPLOAD */
+        .photo-upload-zone { border: 2px dashed var(--border); border-radius: 12px; padding: 14px; cursor: pointer; transition: all 0.2s; text-align: center; background: var(--bg); position: relative; }
+        .photo-upload-zone:hover { border-color: var(--primary); background: rgba(108,99,255,0.05); }
+        .photo-upload-zone input[type=file] { position: absolute; inset: 0; opacity: 0; cursor: pointer; width: 100%; height: 100%; }
+        .photo-preview { width: 48px; height: 48px; object-fit: cover; border-radius: 10px; border: 1px solid var(--border); }
+        .photo-thumb { width: 42px; height: 42px; object-fit: cover; border-radius: 8px; border: 1px solid var(--border); flex-shrink: 0; }
+        .emoji-thumb { width: 42px; height: 42px; display: flex; align-items: center; justify-content: center; font-size: 1.6rem; flex-shrink: 0; }
+
+        /* ORDERS */
+        .order-card { background: var(--surface2); border: 1px solid var(--border); border-radius: 14px; padding: 18px 20px; margin-bottom: 12px; display: flex; align-items: center; gap: 16px; }
+        .order-info { flex: 1; }
+        .order-id { font-size: 0.75rem; color: var(--muted); }
+        .order-name { font-weight: 700; font-size: 0.95rem; margin-bottom: 2px; }
+        .order-items { color: var(--muted); font-size: 0.82rem; }
+        .order-amount { font-weight: 800; color: var(--accent); font-size: 1.1rem; margin-right: 16px; }
+        .order-actions { display: flex; gap: 8px; }
+
+        /* LIVE BADGE */
+        .live-dot { width: 8px; height: 8px; background: #10B981; border-radius: 50%; animation: pulse 1.5s ease infinite; display: inline-block; margin-right: 6px; }
+        @keyframes pulse { 0%, 100% { opacity: 1; transform: scale(1); } 50% { opacity: 0.6; transform: scale(1.3); } }
+
+        .toast-container { position: fixed; bottom: 24px; right: 24px; z-index: 9999; display: flex; flex-direction: column; gap: 10px; }
+        .toast { background: var(--surface2); border: 1px solid var(--border); border-radius: 14px; padding: 14px 20px; font-size: 0.88rem; font-weight: 500; display: flex; align-items: center; gap: 10px; min-width: 280px; animation: slideIn 0.3s ease; box-shadow: 0 8px 30px rgba(0,0,0,0.5); }
+        @keyframes slideIn { from { opacity: 0; transform: translateX(30px); } to { opacity: 1; transform: translateX(0); } }
+        .spinner { width: 18px; height: 18px; border: 2px solid rgba(255,255,255,0.3); border-top-color: white; border-radius: 50%; animation: spin 0.6s linear infinite; display: inline-block; }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        .hidden { display: none !important; }
+        .text-muted { color: var(--muted); }
+
+    </style>
+</head>
+<body>
+    <aside class="sidebar">
+        <div class="sidebar-logo">
+            <div class="logo-mark"><span>🚀</span><span class="logo-text">Campus Express</span></div>
+        </div>
+        <div class="user-info">
+            <div class="user-avatar">🍽️</div>
+            <div class="user-name">{{ vendor.name }}</div>
+            <div class="user-role">Canteen Owner</div>
+            <div class="shop-badge">🏪 {{ vendor.shop_name }}</div>
+        </div>
+        <div class="nav-section">
+            <div class="nav-label">Dashboard</div>
+            <button class="nav-item active" id="nav-orders" onclick="showSection('orders')"><span class="nav-icon">📋</span> Live Orders</button>
+            <button class="nav-item" id="nav-menu" onclick="showSection('menu')"><span class="nav-icon">🍔</span> Menu Manager</button>
+            <button class="nav-item" id="nav-stats" onclick="showSection('stats')"><span class="nav-icon">📊</span> Analytics</button>
+        </div>
+        <div class="sidebar-footer">
+            <a href="/logout" class="btn-logout">🚪 Sign Out</a>
+        </div>
+    </aside>
+
+    <main class="main">
+        <div class="topbar">
+            <h1 id="page-title">🍔 Live Orders</h1>
+            <div style="display:flex;align-items:center;gap:12px;">
+                <button class="toggle-btn {{ 'toggle-open' if vendor.is_open else 'toggle-closed' }}" id="shop-toggle-btn" onclick="toggleShop()">
+                    {{ '🟢 Shop Open' if vendor.is_open else '🔴 Shop Closed' }}
+                </button>
+                <button class="btn btn-primary" style="font-size:0.82rem;" onclick="loadLiveOrders()">🔄 Refresh</button>
+            </div>
+        </div>
+
+        <div class="content">
+            <!-- LIVE ORDERS -->
+            <div class="section active" id="section-orders">
+                <div class="grid-3">
+                    <div class="stat-card"><div class="stat-icon">📋</div><div class="stat-val" id="stat-total">—</div><div class="stat-lbl">Total Orders Today</div></div>
+                    <div class="stat-card"><div class="stat-icon">⏳</div><div class="stat-val" id="stat-pending">—</div><div class="stat-lbl">Pending Orders</div></div>
+                    <div class="stat-card"><div class="stat-icon">✅</div><div class="stat-val" id="stat-completed">—</div><div class="stat-lbl">Completed Orders</div></div>
+                </div>
+
+                <div class="panel">
+                    <div class="panel-title">
+                        <span><span class="live-dot"></span>Incoming Orders</span>
+                        <span style="font-size:0.78rem;color:var(--muted);font-weight:400;">Auto-refreshes every 15s</span>
+                    </div>
+                    <div id="orders-list">
+                        <div style="text-align:center;color:var(--muted);padding:40px;">Loading orders...</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- MENU MANAGER -->
+            <div class="section" id="section-menu">
+                <div class="add-form">
+                    <div style="font-weight:800;margin-bottom:16px;font-size:1rem;">➕ Add New Menu Item</div>
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label>Item Name</label>
+                            <input type="text" id="new-name" placeholder="e.g. Veg Burger">
+                        </div>
+                        <div class="form-group">
+                            <label>Price (₹)</label>
+                            <input type="number" id="new-price" placeholder="0.00" min="0" step="0.5">
+                        </div>
+                        <div class="form-group">
+                            <label>Category</label>
+                            <select id="new-category">
+                                <option>Snacks</option>
+                                <option>Meals</option>
+                                <option>Drinks</option>
+                                <option>Desserts</option>
+                                <option>Other</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Stock Qty</label>
+                            <input type="number" id="new-stock" placeholder="50" min="0">
+                        </div>
+                        <div class="form-group">
+                            <label>Description</label>
+                            <input type="text" id="new-desc" placeholder="Short description">
+                        </div>
+                        <div class="form-group" style="grid-column: span 1;">
+                            <label>📷 Meal Photo (optional)</label>
+                            <div class="photo-upload-zone" id="photo-drop-zone">
+                                <input type="file" id="new-image" accept="image/*" onchange="previewPhoto(this)">
+                                <div id="photo-placeholder">
+                                    <div style="font-size:1.4rem;margin-bottom:4px;">🖼️</div>
+                                    <div style="font-size:0.75rem;color:var(--muted);">Click or drag to upload</div>
+                                </div>
+                                <img id="photo-preview-img" class="photo-preview" style="display:none;margin:0 auto;" alt="preview">
+                            </div>
+                        </div>
+                    </div>
+                    <button class="btn btn-primary" style="margin-top:16px;" onclick="addItem()">➕ Add to Menu</button>
+                </div>
+
+                <div class="panel">
+                    <div class="panel-title">📋 Current Menu ({{ menu_items|length }} items)</div>
+                    <div class="menu-table-wrap">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Item</th>
+                                    <th>Category</th>
+                                    <th>Price</th>
+                                    <th>Stock</th>
+                                    <th>Status</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="menu-tbody">
+                                {% for item in menu_items %}
+                                <tr id="item-row-{{ item.id }}">
+                                    <td>
+                                        <div style="display:flex;align-items:center;gap:10px;">
+                                            {% if item.image_url %}
+                                                <img src="{{ item.image_url }}" class="photo-thumb" alt="{{ item.name }}">
+                                            {% else %}
+                                                <div class="emoji-thumb">{{ item.image_emoji or '🍽️' }}</div>
+                                            {% endif %}
+                                            <div>
+                                                <div style="font-weight:600;">{{ item.name }}</div>
+                                                <div style="color:var(--muted);font-size:0.75rem;">{{ item.description }}</div>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td><span style="color:var(--muted);">{{ item.category }}</span></td>
+                                    <td style="font-weight:700;color:var(--accent);">₹{{ "%.2f"|format(item.price) }}</td>
+                                    <td>{{ item.stock }}</td>
+                                    <td><span class="badge {{ 'badge-open' if item.is_available else 'badge-off' }}">{{ '✅ Available' if item.is_available else '❌ Hidden' }}</span></td>
+                                    <td>
+                                        <div style="display:flex;gap:6px;flex-wrap:wrap;">
+                                            <label class="btn btn-primary btn-sm" style="cursor:pointer;position:relative;overflow:hidden;">
+                                                📷 Photo
+                                                <input type="file" accept="image/*" style="position:absolute;inset:0;opacity:0;cursor:pointer;" onchange="uploadPhoto({{ item.id }}, this)">
+                                            </label>
+                                            <button class="btn btn-warning btn-sm" onclick="toggleItem({{ item.id }}, {{ item.is_available }})">{{ '👁️ Hide' if item.is_available else '👁️ Show' }}</button>
+                                            <button class="btn btn-danger btn-sm" onclick="deleteItem({{ item.id }})">🗑️ Delete</button>
+                                        </div>
+                                    </td>
+                                </tr>
+                                {% else %}
+                                <tr><td colspan="6" style="text-align:center;color:var(--muted);padding:40px;">No menu items yet. Add your first item above!</td></tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- STATS (simple) -->
+            <div class="section" id="section-stats">
+                <div class="panel">
+                    <div class="panel-title">📊 Order History</div>
+                    <div class="menu-table-wrap">
+                        <table>
+                            <thead>
+                                <tr><th>#</th><th>Student</th><th>Amount</th><th>Status</th><th>Date</th></tr>
+                            </thead>
+                            <tbody>
+                                {% for o in orders %}
+                                <tr>
+                                    <td><strong>#{{ o.id }}</strong></td>
+                                    <td>{{ o.student_name }}</td>
+                                    <td style="font-weight:700;color:var(--accent);">₹{{ "%.2f"|format(o.total_amount) }}</td>
+                                    <td><span class="badge badge-{{ o.status }}">{{ o.status.title() }}</span></td>
+                                    <td style="color:var(--muted);font-size:0.8rem;">{{ o.created_at[:16] if o.created_at else '—' }}</td>
+                                </tr>
+                                {% else %}
+                                <tr><td colspan="5" style="text-align:center;color:var(--muted);padding:40px;">No orders yet.</td></tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <div class="toast-container" id="toast-container"></div>
+
+    <script>
+        function showSection(name) {
+            document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+            document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+            document.getElementById('section-' + name).classList.add('active');
+            document.getElementById('nav-' + name).classList.add('active');
+            const titles = { orders: '🍔 Live Orders', menu: '📋 Menu Manager', stats: '📊 Analytics' };
+            document.getElementById('page-title').textContent = titles[name];
+        }
+
+        function toast(msg, type = 'success') {
+            const tc = document.getElementById('toast-container');
+            const el = document.createElement('div');
+            el.className = 'toast';
+            el.textContent = msg;
+            tc.appendChild(el);
+            setTimeout(() => el.remove(), 4000);
+        }
+
+        async function loadLiveOrders() {
+            const res = await fetch('/api/canteen/orders/live');
+            const orders = await res.json();
+            const list = document.getElementById('orders-list');
+            const pending = orders.filter(o => o.status === 'paid' || o.status === 'pending');
+            const completed = orders.filter(o => o.status === 'completed');
+
+            document.getElementById('stat-total').textContent = orders.length;
+            document.getElementById('stat-pending').textContent = pending.length;
+            document.getElementById('stat-completed').textContent = completed.length;
+
+            if (!orders.length) {
+                list.innerHTML = '<div style="text-align:center;color:var(--muted);padding:40px;font-size:0.9rem;">🎉 No orders yet. Waiting for students...</div>';
+                return;
+            }
+            list.innerHTML = orders.map(o => `
+                <div class="order-card" id="ocard-${o.id}">
+                    <div style="font-size:2rem;">🍔</div>
+                    <div class="order-info">
+                        <div class="order-id">Order #${o.id} • ${o.student_phone}</div>
+                        <div class="order-name">${o.student_name}</div>
+                        <div class="order-items">${o.items_summary || 'Food order'}</div>
+                    </div>
+                    <div class="order-amount">₹${o.total_amount.toFixed(2)}</div>
+                    <span class="badge badge-${o.status}" style="margin-right:12px;">${o.status.charAt(0).toUpperCase() + o.status.slice(1)}</span>
+                    <div class="order-actions">
+                        ${o.status !== 'completed' && o.status !== 'rejected' ? `
+                            <button class="btn btn-success btn-sm" onclick="updateOrderStatus(${o.id},'accepted')">✅ Accept</button>
+                            <button class="btn btn-primary btn-sm" onclick="updateOrderStatus(${o.id},'completed')">🏁 Done</button>
+                            <button class="btn btn-danger btn-sm" onclick="updateOrderStatus(${o.id},'rejected')">❌ Reject</button>
+                        ` : `<span style="color:var(--muted);font-size:0.8rem;">${o.status === 'completed' ? '✅ Done' : '❌ Rejected'}</span>`}
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        async function updateOrderStatus(orderId, status) {
+            const res = await fetch(`/api/canteen/order/status/${orderId}`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ status })
+            });
+            const data = await res.json();
+            if (data.success) { toast(`Order #${orderId} marked as ${status}`); loadLiveOrders(); }
+        }
+
+        function previewPhoto(input) {
+            const file = input.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = e => {
+                const img = document.getElementById('photo-preview-img');
+                img.src = e.target.result;
+                img.style.display = 'block';
+                document.getElementById('photo-placeholder').style.display = 'none';
+            };
+            reader.readAsDataURL(file);
+        }
+
+        async function addItem() {
+            const name = document.getElementById('new-name').value.trim();
+            const price = parseFloat(document.getElementById('new-price').value);
+            const category = document.getElementById('new-category').value;
+            const stock = parseInt(document.getElementById('new-stock').value) || 50;
+            const description = document.getElementById('new-desc').value.trim();
+            const imageFile = document.getElementById('new-image').files[0];
+
+            if (!name || !price) { toast('❌ Name and price are required'); return; }
+
+            const formData = new FormData();
+            formData.append('name', name);
+            formData.append('price', price);
+            formData.append('category', category);
+            formData.append('stock', stock);
+            formData.append('description', description);
+            formData.append('emoji', '🍽️');
+            if (imageFile) formData.append('image', imageFile);
+
+            const res = await fetch('/api/canteen/menu/add', { method: 'POST', body: formData });
+            const data = await res.json();
+            if (data.success) {
+                toast(`✅ "${name}" added to menu!`);
+                const item = data.item;
+                const tbody = document.getElementById('menu-tbody');
+                const emptyRow = tbody.querySelector('td[colspan]');
+                if (emptyRow) emptyRow.closest('tr').remove();
+                const thumbHtml = item.image_url
+                    ? `<img src="${item.image_url}" class="photo-thumb" alt="${item.name}">`
+                    : `<div class="emoji-thumb">🍽️</div>`;
+                const row = document.createElement('tr');
+                row.id = 'item-row-' + item.id;
+                row.innerHTML = `
+                    <td><div style="display:flex;align-items:center;gap:10px;">${thumbHtml}<div><div style="font-weight:600;">${item.name}</div><div style="color:var(--muted);font-size:0.75rem;">${item.description}</div></div></div></td>
+                    <td style="color:var(--muted);">${item.category}</td>
+                    <td style="font-weight:700;color:var(--accent);">₹${item.price.toFixed(2)}</td>
+                    <td>${item.stock}</td>
+                    <td><span class="badge badge-open">✅ Available</span></td>
+                    <td><div style="display:flex;gap:6px;flex-wrap:wrap;">
+                        <label class="btn btn-primary btn-sm" style="cursor:pointer;position:relative;overflow:hidden;">📷 Photo<input type="file" accept="image/*" style="position:absolute;inset:0;opacity:0;cursor:pointer;" onchange="uploadPhoto(${item.id}, this)"></label>
+                        <button class="btn btn-warning btn-sm" onclick="toggleItem(${item.id}, 1)">👁️ Hide</button>
+                        <button class="btn btn-danger btn-sm" onclick="deleteItem(${item.id})">🗑️ Delete</button>
+                    </div></td>
+                `;
+                tbody.appendChild(row);
+                // Reset form
+                ['new-name','new-price','new-desc'].forEach(id => document.getElementById(id).value = '');
+                document.getElementById('new-stock').value = '';
+                document.getElementById('new-image').value = '';
+                document.getElementById('photo-preview-img').style.display = 'none';
+                document.getElementById('photo-placeholder').style.display = 'block';
+            } else { toast('❌ Failed to add item'); }
+        }
+
+        async function uploadPhoto(itemId, input) {
+            const file = input.files[0];
+            if (!file) return;
+            const row = document.getElementById('item-row-' + itemId);
+            const cells = row.querySelectorAll('td');
+            const name = cells[0]?.querySelector('div > div > div')?.textContent?.trim() || 'Item';
+            const description = cells[0]?.querySelectorAll('div > div > div')[1]?.textContent?.trim() || '';
+            const category = cells[1]?.textContent?.trim() || 'Food';
+            const priceText = cells[2]?.textContent?.replace('₹','').trim();
+            const price = parseFloat(priceText) || 0;
+            const stock = parseInt(cells[3]?.textContent?.trim()) || 0;
+            const isAvailable = cells[4]?.querySelector('.badge-open') ? 1 : 0;
+
+            const fd = new FormData();
+            fd.append('name', name);
+            fd.append('description', description);
+            fd.append('price', price);
+            fd.append('category', category);
+            fd.append('stock', stock);
+            fd.append('is_available', isAvailable);
+            fd.append('emoji', '🍽️');
+            fd.append('image', file);
+
+            toast('⏳ Uploading photo...');
+            const res = await fetch(`/api/canteen/menu/update/${itemId}`, { method: 'POST', body: fd });
+            const data = await res.json();
+            if (data.success) {
+                toast('✅ Photo updated!');
+                location.reload();
+            } else { toast('❌ Failed to upload photo'); }
+        }
+
+        async function toggleItem(id, currentState) {
+            const newState = currentState ? 0 : 1;
+            const row = document.getElementById('item-row-' + id);
+            // Read actual values from the table cells to avoid overwriting with wrong defaults
+            const cells = row.querySelectorAll('td');
+            const name = cells[0]?.querySelector('div > div')?.textContent?.trim() || 'Item';
+            const description = cells[0]?.querySelectorAll('div > div')[1]?.textContent?.trim() || '';
+            const category = cells[1]?.textContent?.trim() || 'Food';
+            const priceText = cells[2]?.textContent?.replace('₹', '').trim();
+            const price = parseFloat(priceText) || 0;
+            const stock = parseInt(cells[3]?.textContent?.trim()) || 0;
+            await fetch(`/api/canteen/menu/update/${id}`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ name, description, price, category, stock, is_available: newState, emoji: '🍽️' })
+            });
+            location.reload();
+        }
+
+        async function deleteItem(id) {
+            if (!confirm('Delete this menu item?')) return;
+            const res = await fetch(`/api/canteen/menu/delete/${id}`, { method: 'DELETE' });
+            const data = await res.json();
+            if (data.success) {
+                document.getElementById('item-row-' + id)?.remove();
+                toast('🗑️ Item deleted');
+            }
+        }
+
+        async function toggleShop() {
+            const res = await fetch('/api/canteen/toggle', { method: 'POST' });
+            const data = await res.json();
+            const btn = document.getElementById('shop-toggle-btn');
+            if (data.is_open) {
+                btn.textContent = '🟢 Shop Open';
+                btn.className = 'toggle-btn toggle-open';
+            } else {
+                btn.textContent = '🔴 Shop Closed';
+                btn.className = 'toggle-btn toggle-closed';
+            }
+            toast(data.is_open ? '✅ Shop is now Open' : '🔴 Shop is now Closed');
+        }
+
+        // Load orders on mount and refresh every 15s
+        loadLiveOrders();
+        setInterval(loadLiveOrders, 15000);
+    </script>
+</body>
+</html>
