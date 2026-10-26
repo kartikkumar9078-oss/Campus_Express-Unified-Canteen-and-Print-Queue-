@@ -780,6 +780,17 @@ def live_print_orders():
     db.close()
     return jsonify([dict(o) for o in orders])
 
+# ─── STARTUP (runs on first request in serverless / Vercel environment) ──────
+_app_initialized = False
+
+@app.before_request
+def _startup():
+    global _app_initialized
+    if not _app_initialized:
+        _app_initialized = True
+        init_db()
+        start_cleanup_thread()
+
 if __name__ == "__main__":
     init_db()
     start_cleanup_thread()
