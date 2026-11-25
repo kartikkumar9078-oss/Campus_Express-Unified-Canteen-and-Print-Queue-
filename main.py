@@ -8,11 +8,9 @@ from pydantic import BaseModel
 
 app = FastAPI(title="Campus Express Backend Engine")
 
-# --- STORAGE SETUP FOR PRINT FILES ---
 PRINT_STORAGE_DIR = "uploaded_prints"
 os.makedirs(PRINT_STORAGE_DIR, exist_ok=True)
 
-# --- OS LOGIC: SJF PRINT SPOOLER ---
 class PrintSpooler:
     def __init__(self):
         # Queue stores tuples: (page_count, tie_breaker_counter, job_data)
