@@ -43,7 +43,6 @@ class PrintSpooler:
 
 
 if __name__ == "__main__":
-    # Test Mutex
     t1 = threading.Thread(target=process_canteen_order, args=("Shivansh", "Samosa", 3))
     t2 = threading.Thread(target=process_canteen_order, args=("Kartik", "Samosa", 3))
     t1.start()
