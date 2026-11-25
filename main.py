@@ -61,7 +61,6 @@ def place_canteen_order(order: CanteenOrder):
     try:
         conn.start_transaction()
         
-        # Row-level lock (FOR UPDATE) prevents race conditions across concurrent orders
         cursor.execute(
             "SELECT stock_count, price, vendor_id FROM Inventory WHERE item_id = %s FOR UPDATE", 
             (order.item_id,)
