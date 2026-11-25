@@ -45,7 +45,7 @@ INSERT INTO `Inventory` VALUES (1,1,'Samosa',15.00,27),(2,1,'Cold Coffee',40.00,
 UNLOCK TABLES;
 
 --
--- Table structure for table `Orders`
+-- Table structure for table `Orders`.
 --
 
 DROP TABLE IF EXISTS `Orders`;
