@@ -1,4 +1,4 @@
-# Python
+
 __pycache__/
 *.py[cod]
 *.pyo
@@ -9,21 +9,18 @@ dist/
 build/
 .eggs/
 
-# Virtual environments
 venv/
 env/
 .venv/
 .env
 
-# Database (contains real user data — never commit)
+
 *.db
 *.sqlite
 *.sqlite3
 
-# Uploaded files (user-generated content)
 web_app/uploads/
 
-# IDE / OS
 .vscode/
 .idea/
 *.DS_Store
