@@ -28,7 +28,6 @@ class PrintSpooler:
             "page_count": page_count,
             "file_path": os.path.join(PRINT_STORAGE_DIR, stored_filename)
         }
-        # Heap prioritizes smallest page_count first
         heapq.heappush(self.job_queue, (page_count, self.counter, job_data))
         return job_data
 
