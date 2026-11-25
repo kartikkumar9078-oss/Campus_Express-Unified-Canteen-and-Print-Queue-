@@ -39,7 +39,6 @@ class PrintSpooler:
 
 spooler = PrintSpooler()
 
-# --- DATABASE CONNECTION ---
 def get_db_connection():
     return mysql.connector.connect(
         host="localhost",
