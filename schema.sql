@@ -16,7 +16,7 @@
 /*!40111 SET @OLD_SQL_NOTES=@@SQL_NOTES, SQL_NOTES=0 */;
 
 --
--- Table structure for table `Inventory`.
+-- Table structure for table `Inventory.`
 --
 
 DROP TABLE IF EXISTS `Inventory`;
@@ -45,7 +45,7 @@ INSERT INTO `Inventory` VALUES (1,1,'Samosa',15.00,27),(2,1,'Cold Coffee',40.00,
 UNLOCK TABLES;
 
 --
--- Table structure for table `Orders`.
+-- Table structure for table `Orders.`
 --
 
 DROP TABLE IF EXISTS `Orders`;
